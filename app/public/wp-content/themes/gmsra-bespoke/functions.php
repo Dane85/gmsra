@@ -159,6 +159,25 @@ function gmsra_make_url_relative( $url ) {
 }
 
 /**
+ * Dynamically replace gmsra.local / localhost with the requesting host and port.
+ */
+function gmsra_dynamic_url( $url ) {
+	if ( empty( $url ) || ! is_string( $url ) ) {
+		return $url;
+	}
+	if ( preg_match( '~^(mailto:|tel:|javascript:|#)~i', $url ) ) {
+		return $url;
+	}
+	if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
+		$proto = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) || ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) ) ? 'https://' : 'http://';
+		$current_base = $proto . $_SERVER['HTTP_HOST'];
+		$url = preg_replace( '#^https?://(?:www\.)?gmsra\.local(?::\d+)?#i', $current_base, $url );
+		$url = preg_replace( '#^https?://(?:localhost|127\.0\.0\.1)(?::\d+)?#i', $current_base, $url );
+	}
+	return $url;
+}
+
+/**
  * Helper: Asset URL
  */
 function gmsra_asset( $path ) {
@@ -623,18 +642,22 @@ add_filter( 'wp_nav_menu', function( $nav_menu ) {
 	}, $nav_menu );
 }, 999 );
 
-add_filter( 'home_url', function( $url ) {
-	if ( ! is_admin() ) {
-		return gmsra_make_url_relative( $url );
-	}
-	return $url;
-}, 999 );
-
-add_filter( 'page_link', 'gmsra_make_url_relative', 999 );
-add_filter( 'post_link', 'gmsra_make_url_relative', 999 );
-add_filter( 'post_type_link', 'gmsra_make_url_relative', 999 );
-add_filter( 'term_link', 'gmsra_make_url_relative', 999 );
+add_filter( 'home_url', 'gmsra_dynamic_url', 999 );
+add_filter( 'page_link', 'gmsra_dynamic_url', 999 );
+add_filter( 'post_link', 'gmsra_dynamic_url', 999 );
+add_filter( 'post_type_link', 'gmsra_dynamic_url', 999 );
+add_filter( 'term_link', 'gmsra_dynamic_url', 999 );
 add_filter( 'template_directory_uri', 'gmsra_make_url_relative', 999 );
 add_filter( 'stylesheet_directory_uri', 'gmsra_make_url_relative', 999 );
+
+/**
+ * Prevent canonical redirect from stripping ports on custom port setups (e.g. :8080)
+ */
+add_filter( 'redirect_canonical', function( $redirect_url ) {
+	if ( ! empty( $_SERVER['HTTP_HOST'] ) && str_contains( $_SERVER['HTTP_HOST'], ':' ) ) {
+		return false;
+	}
+	return $redirect_url;
+}, 999 );
 
 
