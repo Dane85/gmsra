@@ -543,3 +543,19 @@ function gmsra_add_to_google_calendar_url( $event ) {
 	return 'https://calendar.google.com/calendar/render?' . http_build_query( $params );
 }
 
+/**
+ * Ensure menu items use current host when browsing
+ */
+function gmsra_dynamic_menu_urls( $items ) {
+	$home = home_url();
+	if ( ! empty( $items ) && is_array( $items ) ) {
+		foreach ( $items as $item ) {
+			if ( ! empty( $item->url ) && strpos( $item->url, 'http://gmsra.local' ) === 0 ) {
+				$item->url = str_replace( 'http://gmsra.local', $home, $item->url );
+			}
+		}
+	}
+	return $items;
+}
+add_filter( 'wp_nav_menu_objects', 'gmsra_dynamic_menu_urls' );
+

@@ -41,7 +41,6 @@ html {
   font-size: 18px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  overflow-x: clip;
 }
 
 body {
@@ -53,8 +52,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-x: clip;
-  max-width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -36,8 +36,8 @@
       }
     });
 
-    // Close mobile nav when clicking a link or CTA button inside it
-    $('.nav-link, .nav-menu li a, .main-nav .btn').on('click', function() {
+    // Close mobile nav when clicking an in-page anchor link (e.g. href="#content")
+    $('.nav-link[href^="#"], .nav-menu li a[href^="#"]').on('click', function() {
       if ($(window).width() <= 1060) {
         closeMobileNav();
       }
