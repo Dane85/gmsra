@@ -21,7 +21,6 @@ This repository contains the complete local development environment and custom W
   - `page-contact-us.php` – Executive contact info and inquiry routing.
   - `single.php` – Event recaps, including the 2026 Annual BBQ gallery and meeting notes.
 - **Event Photo Gallery**: Embedded gallery showcase featuring association gatherings.
-- **Visual Archives**: High-resolution full-page previews captured in the `screenshots/` directory.
 
 ---
 
@@ -46,7 +45,6 @@ gmsra/
 │   └── sql/
 │       └── local.sql                # Complete database backup export
 ├── conf/                            # Local by Flywheel server configs (Nginx, PHP, MySQL)
-├── screenshots/                     # Full-page visual documentation screenshots
 ├── .gitignore                       # Repository ignore rules
 └── README.md                        # Project documentation
 ```
@@ -68,19 +66,6 @@ This project is configured for **[Local by Flywheel](https://localwp.com/)**:
    - **Web Server**: Nginx
    - **Database**: MySQL 8.0+ / MariaDB
    - **WordPress**: 6.x+
-
----
-
-## 📸 Screenshots & Visual Documentation
-
-Full-page screenshots of all key views are cataloged in [`screenshots/`](./screenshots/):
-- `01_Home.png` – Homepage hero and announcements
-- `02_About_Us.png` – About Us & leadership
-- `03_News_and_Events.png` – News & events archive
-- `04_Membership_Form.png` – Membership application page
-- `05_Contact_Us.png` – Contact details
-- `06_Meeting_Post.png` – General meeting post view
-- `07_Picnic_Post.png` – Annual Picnic & BBQ gallery post
 
 ---
 

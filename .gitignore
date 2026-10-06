@@ -2,9 +2,10 @@
 logs/
 *.log
 
-# Large Archives
+# Large Archives & Documentation Media
 *.zip
 *.tar.gz
+screenshots/
 
 # Local machine direnv configuration
 app/.envrc
