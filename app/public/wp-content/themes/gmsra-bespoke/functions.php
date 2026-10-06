@@ -126,7 +126,7 @@ function gmsra_make_url_relative( $url ) {
 	}
 
 	// Never alter non-HTTP schemes or in-page hash anchors
-	if ( preg_match( '#^(mailto:|tel:|javascript:|#)#i', $url ) ) {
+	if ( preg_match( '~^(mailto:|tel:|javascript:|#)~i', $url ) ) {
 		return $url;
 	}
 
