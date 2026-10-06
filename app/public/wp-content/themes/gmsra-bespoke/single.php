@@ -26,7 +26,7 @@ get_header(); ?>
 				</div>
 			<?php endif; ?>
 
-			<div style="background: var(--gmsra-surface); padding: 2.5rem; border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); box-shadow: var(--gmsra-shadow-sm); font-size: 1.15rem; line-height: 1.8;">
+			<div class="content-card-box single-entry-content">
 				<?php the_content(); ?>
 			</div>
 

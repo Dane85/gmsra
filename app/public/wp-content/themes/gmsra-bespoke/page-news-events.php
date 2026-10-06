@@ -14,7 +14,7 @@ get_header(); ?>
 			<div class="hero-pill">
 				<span>📅</span> Stay Connected
 			</div>
-			<h1 class="hero-title" style="font-size: 2.75rem;">News &amp; Upcoming Events</h1>
+			<h1 class="hero-title">News &amp; Upcoming Events</h1>
 			<p class="hero-subtitle">Mark Your Calendar for Our Upcoming Meetings and Social Gatherings</p>
 			<p class="hero-lead">Join us each month for informative guest speakers, fellowship, and special events. Please check back regularly for upcoming gatherings, announcements, and association news.</p>
 		</div>
@@ -34,7 +34,7 @@ get_header(); ?>
 		$calendar_events = gmsra_get_calendar_events();
 		if ( ! empty( $calendar_events ) ) :
 		?>
-			<div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin-bottom: 3.5rem;">
+			<div class="cards-grid events-cards-grid">
 				<?php foreach ( $calendar_events as $evt ) :
 					$dt = $evt['start'];
 					$month_badge = $dt instanceof DateTime ? $dt->format('M') : 'EVENT';
@@ -76,7 +76,7 @@ get_header(); ?>
 
 
 		<!-- In Memoriam / Notices Box -->
-		<div style="margin-top: 3.5rem; background: var(--gmsra-surface); border: 1px solid var(--gmsra-border); border-radius: var(--gmsra-radius-lg); padding: 2.5rem; box-shadow: var(--gmsra-shadow-sm);">
+		<div class="content-card-box memoriam-box">
 			<div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
 				<div style="font-size: 2.8rem;">🕊️</div>
 				<div style="flex: 1; min-width: 280px;">

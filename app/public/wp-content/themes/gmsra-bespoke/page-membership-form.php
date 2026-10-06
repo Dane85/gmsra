@@ -14,7 +14,7 @@ get_header(); ?>
 			<div class="hero-pill">
 				<span>📝</span> Membership Registration &amp; Renewal
 			</div>
-			<h1 class="hero-title" style="font-size: 2.75rem;">Join or Renew Your Membership</h1>
+			<h1 class="hero-title">Join or Renew Your Membership</h1>
 			<p class="hero-subtitle">Welcoming All General Motors Oshawa Salaried Retirees &amp; Spouses</p>
 			<p class="hero-lead">Fill out our convenient online application below, or download the printable PDF to mail or bring to our next meeting.</p>
 		</div>
@@ -24,7 +24,7 @@ get_header(); ?>
 <!-- Main Membership Section -->
 <section class="section">
 	<div class="container">
-		<div class="split-grid" style="grid-template-columns: 2fr 1fr; align-items: flex-start; gap: 2.5rem;">
+		<div class="split-grid split-grid-2-1">
 			<!-- Left: Online Application Form -->
 			<div class="form-card">
 				<h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Membership Application Form</h2>

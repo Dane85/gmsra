@@ -48,7 +48,7 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 					<p><?php echo esc_html( $next_date ); ?> &bull; <?php echo esc_html( $next_loc ); ?></p>
 				</div>
 			</div>
-			<div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+			<div class="meeting-banner-actions">
 				<?php if ( $next_event ) : ?>
 					<a href="<?php echo esc_url( gmsra_add_to_google_calendar_url( $next_event ) ); ?>" target="_blank" rel="noopener" class="btn btn-secondary">
 						+ Add to Calendar

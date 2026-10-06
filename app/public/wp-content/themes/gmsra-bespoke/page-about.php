@@ -14,7 +14,7 @@ get_header(); ?>
 			<div class="hero-pill">
 				<span>📖</span> Established 1982
 			</div>
-			<h1 class="hero-title" style="font-size: 2.75rem;">About GMSRA</h1>
+			<h1 class="hero-title">About GMSRA</h1>
 			<p class="hero-subtitle">Connecting GM Oshawa Salaried Retirees for Over 40 Years</p>
 			<p class="hero-lead">The General Motors Salaried Retirees Association (GMSRA) is a non-profit, member-driven organization dedicated to building and maintaining a strong community among retired salaried employees of General Motors Oshawa and their spouses or partners.</p>
 		</div>
@@ -82,7 +82,7 @@ get_header(); ?>
 			<p class="section-desc">Established in 1982, GMSRA has grown from an informal gathering of retirees into a strong, supportive network of hundreds of former GM professionals across Durham Region and beyond.</p>
 		</div>
 
-		<div style="max-width: 860px; margin: 0 auto; background: var(--gmsra-surface); padding: 2.5rem; border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); box-shadow: var(--gmsra-shadow-sm);">
+		<div class="content-card-box history-box">
 			<p style="font-size: 1.15rem; line-height: 1.8;">Over the decades, we have preserved a proud legacy of camaraderie that reflects what it truly meant to be part of the General Motors team in Oshawa. From the bustling assembly lines and engineering labs to our front offices, our members helped shape the automotive history of Canada.</p>
 			<p style="font-size: 1.15rem; line-height: 1.8; margin-top: 1rem;">Today, GMSRA honors that proud tradition by keeping retirees connected through regular fellowship, exciting outings, and mutual support.</p>
 		</div>
@@ -99,10 +99,10 @@ get_header(); ?>
 		</div>
 
 		<!-- Featured BBQ Event Recap Banner -->
-		<div style="background: var(--gmsra-surface); border: 1px solid var(--gmsra-border); border-left: 5px solid var(--gmsra-blue); border-radius: var(--gmsra-radius-lg); padding: 2rem 2.25rem; margin-bottom: 2.5rem; box-shadow: var(--gmsra-shadow-sm);">
+		<div class="event-recap-banner">
 			<div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
 				<div style="font-size: 2.2rem; line-height: 1;">🍔</div>
-				<div style="flex: 1; min-width: 280px;">
+				<div style="flex: 1; min-width: 260px;">
 					<span class="top-notice-badge" style="background: var(--gmsra-blue); margin-bottom: 0.5rem; display: inline-block;">Annual Gathering Recap</span>
 					<h3 style="font-size: 1.4rem; margin-bottom: 0.75rem; color: var(--gmsra-navy);">Annual GMSRA Summer Picnic &amp; BBQ</h3>
 					<p style="color: var(--gmsra-text-muted); font-size: 1.05rem; line-height: 1.7; margin: 0;">
@@ -158,14 +158,14 @@ get_header(); ?>
 			<p class="section-desc">Our volunteer executive is here to answer your questions and welcome you into the community.</p>
 		</div>
 
-		<div style="max-width: 760px; margin: 0 auto; background: var(--gmsra-surface); padding: 2.5rem; border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); box-shadow: var(--gmsra-shadow-sm); text-align: center;">
+		<div class="content-card-box association-contact-box">
 			<div style="font-size: 2.5rem; margin-bottom: 1rem;">📬</div>
 			<h3 style="margin-bottom: 0.75rem;">Official Association Email</h3>
 			<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">For general inquiries, membership applications, or member notices, please reach out to our official inbox:</p>
 			<div style="margin-bottom: 2rem;">
-				<a href="mailto:GMSRA@gmsalariedretirees.com" style="font-size: 1.35rem; font-weight: 700; color: var(--gmsra-blue); text-decoration: none;">GMSRA@gmsalariedretirees.com</a>
+				<a href="mailto:GMSRA@gmsalariedretirees.com" class="association-email-display">GMSRA@gmsalariedretirees.com</a>
 			</div>
-			<div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+			<div class="association-contact-buttons">
 				<a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>" class="btn btn-primary">Send an Online Message &rarr;</a>
 				<a href="<?php echo esc_url( home_url( '/membership-form/' ) ); ?>" class="btn btn-secondary">Membership Application</a>
 			</div>

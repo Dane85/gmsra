@@ -14,7 +14,7 @@ get_header(); ?>
 			<div class="hero-pill">
 				<span>📬</span> Get in Touch
 			</div>
-			<h1 class="hero-title" style="font-size: 2.75rem;">Contact GMSRA</h1>
+			<h1 class="hero-title">Contact GMSRA</h1>
 			<p class="hero-subtitle">Have Questions or Want to Get Involved? We're Here to Help.</p>
 			<p class="hero-lead">Reach out to our executive committee using the contact form below or contact one of our coordinators directly.</p>
 		</div>
@@ -24,7 +24,7 @@ get_header(); ?>
 <!-- Contact Section -->
 <section class="section">
 	<div class="container">
-		<div class="split-grid" style="grid-template-columns: 3fr 2fr; align-items: flex-start; gap: 2.5rem;">
+		<div class="split-grid split-grid-3-2">
 			<!-- Contact Form -->
 			<div class="form-card">
 				<h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Send Us a Message</h2>
@@ -107,7 +107,7 @@ get_header(); ?>
 			</div>
 
 			<div style="background: var(--gmsra-surface); padding: 1.5rem; border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); box-shadow: var(--gmsra-shadow-md);">
-				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+				<div class="map-box-header">
 					<div>
 						<h3 style="font-size: 1.2rem; margin: 0;">📍 Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7</h3>
 					</div>

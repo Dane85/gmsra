@@ -9,18 +9,54 @@
     // Mobile navigation toggle
     const $toggle = $('.mobile-toggle');
     const $nav = $('.main-nav');
+    const $hamburgerIcon = $toggle.find('.hamburger-icon');
+    const $closeIcon = $toggle.find('.close-icon');
 
-    $toggle.on('click', function() {
-      const expanded = $(this).attr('aria-expanded') === 'true' || false;
-      $(this).attr('aria-expanded', !expanded);
-      $nav.toggleClass('active');
+    function closeMobileNav() {
+      $nav.removeClass('active');
+      $toggle.removeClass('is-active').attr('aria-expanded', 'false');
+      $hamburgerIcon.show();
+      $closeIcon.hide();
+    }
+
+    function openMobileNav() {
+      $nav.addClass('active');
+      $toggle.addClass('is-active').attr('aria-expanded', 'true');
+      $hamburgerIcon.hide();
+      $closeIcon.show();
+    }
+
+    $toggle.on('click', function(e) {
+      e.stopPropagation();
+      const isExpanded = $(this).attr('aria-expanded') === 'true';
+      if (isExpanded) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
     });
 
-    // Close mobile nav when clicking a link
-    $('.nav-link, .nav-menu li a').on('click', function() {
+    // Close mobile nav when clicking a link or CTA button inside it
+    $('.nav-link, .nav-menu li a, .main-nav .btn').on('click', function() {
       if ($(window).width() <= 1060) {
-        $nav.removeClass('active');
-        $toggle.attr('aria-expanded', 'false');
+        closeMobileNav();
+      }
+    });
+
+    // Close mobile nav when clicking outside the header
+    $(document).on('click', function(e) {
+      if ($(window).width() <= 1060 && $nav.hasClass('active')) {
+        if (!$(e.target).closest('#masthead').length) {
+          closeMobileNav();
+        }
+      }
+    });
+
+    // Close on Escape key
+    $(document).on('keydown', function(e) {
+      if (e.key === 'Escape' && $nav.hasClass('active')) {
+        closeMobileNav();
+        $toggle.focus();
       }
     });
 
