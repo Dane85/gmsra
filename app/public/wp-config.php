@@ -73,6 +73,12 @@ $table_prefix = 'wp_';
 
 /* Add any custom values between this line and the "stop editing" line. */
 
+if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
+	$proto = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) || ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) ) ? 'https://' : 'http://';
+	define( 'WP_HOME', $proto . $_SERVER['HTTP_HOST'] );
+	define( 'WP_SITEURL', $proto . $_SERVER['HTTP_HOST'] );
+}
+
 
 
 /**

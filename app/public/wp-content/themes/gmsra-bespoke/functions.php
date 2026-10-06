@@ -117,10 +117,53 @@ function gmsra_get_next_meeting_date() {
 }
 
 /**
+ * Convert internal/local URLs to root-relative paths so mobile devices,
+ * live-links, and remote hosts never see or redirect to gmsra.local.
+ */
+function gmsra_make_url_relative( $url ) {
+	if ( empty( $url ) || ! is_string( $url ) ) {
+		return $url;
+	}
+
+	// Never alter non-HTTP schemes or in-page hash anchors
+	if ( preg_match( '#^(mailto:|tel:|javascript:|#)#i', $url ) ) {
+		return $url;
+	}
+
+	// Remove local domains
+	$url = preg_replace( '#^https?://(?:www\.)?gmsra\.local(?::\d+)?#i', '', $url );
+	$url = preg_replace( '#^https?://(?:localhost|127\.0\.0\.1)(?::\d+)?#i', '', $url );
+
+	// Remove current HTTP host if matching
+	if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
+		$host = preg_quote( $_SERVER['HTTP_HOST'], '#' );
+		$url = preg_replace( '#^https?://' . $host . '#i', '', $url );
+	}
+
+	// Remove configured site/home host if still present
+	$home = get_option( 'home' );
+	if ( ! empty( $home ) ) {
+		$home_host = wp_parse_url( $home, PHP_URL_HOST );
+		$home_port = wp_parse_url( $home, PHP_URL_PORT );
+		if ( ! empty( $home_host ) ) {
+			$pattern = preg_quote( $home_host, '#' ) . ( $home_port ? ':' . $home_port : '(?::\d+)?' );
+			$url = preg_replace( '#^https?://' . $pattern . '#i', '', $url );
+		}
+	}
+
+	if ( '' === $url ) {
+		return '/';
+	}
+
+	return $url;
+}
+
+/**
  * Helper: Asset URL
  */
 function gmsra_asset( $path ) {
-	return get_template_directory_uri() . '/assets/' . ltrim( $path, '/' );
+	$uri = get_template_directory_uri() . '/assets/' . ltrim( $path, '/' );
+	return gmsra_make_url_relative( $uri );
 }
 
 /**
@@ -544,18 +587,54 @@ function gmsra_add_to_google_calendar_url( $event ) {
 }
 
 /**
- * Ensure menu items use current host when browsing
+ * Filter all navigation menu objects, attributes, and rendered HTML
+ * to ensure all internal links are root-relative and never reference gmsra.local.
  */
-function gmsra_dynamic_menu_urls( $items ) {
-	$home = home_url();
+add_filter( 'wp_nav_menu_objects', function( $items ) {
 	if ( ! empty( $items ) && is_array( $items ) ) {
 		foreach ( $items as $item ) {
-			if ( ! empty( $item->url ) && strpos( $item->url, 'http://gmsra.local' ) === 0 ) {
-				$item->url = str_replace( 'http://gmsra.local', $home, $item->url );
+			if ( ! empty( $item->url ) ) {
+				$item->url = gmsra_make_url_relative( $item->url );
 			}
 		}
 	}
 	return $items;
-}
-add_filter( 'wp_nav_menu_objects', 'gmsra_dynamic_menu_urls' );
+}, 999 );
+
+add_filter( 'nav_menu_link_attributes', function( $atts ) {
+	if ( ! empty( $atts['href'] ) ) {
+		$atts['href'] = gmsra_make_url_relative( $atts['href'] );
+	}
+	return $atts;
+}, 999 );
+
+add_filter( 'walker_nav_menu_start_el', function( $item_output ) {
+	return preg_replace_callback( '#href="([^"]+)"#i', function( $matches ) {
+		return 'href="' . esc_url( gmsra_make_url_relative( $matches[1] ) ) . '"';
+	}, $item_output );
+}, 999 );
+
+add_filter( 'wp_nav_menu', function( $nav_menu ) {
+	if ( empty( $nav_menu ) ) {
+		return $nav_menu;
+	}
+	return preg_replace_callback( '#href="([^"]+)"#i', function( $matches ) {
+		return 'href="' . esc_url( gmsra_make_url_relative( $matches[1] ) ) . '"';
+	}, $nav_menu );
+}, 999 );
+
+add_filter( 'home_url', function( $url ) {
+	if ( ! is_admin() ) {
+		return gmsra_make_url_relative( $url );
+	}
+	return $url;
+}, 999 );
+
+add_filter( 'page_link', 'gmsra_make_url_relative', 999 );
+add_filter( 'post_link', 'gmsra_make_url_relative', 999 );
+add_filter( 'post_type_link', 'gmsra_make_url_relative', 999 );
+add_filter( 'term_link', 'gmsra_make_url_relative', 999 );
+add_filter( 'template_directory_uri', 'gmsra_make_url_relative', 999 );
+add_filter( 'stylesheet_directory_uri', 'gmsra_make_url_relative', 999 );
+
 

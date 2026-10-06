@@ -60,6 +60,26 @@
       }
     });
 
+    // Ensure all internal links pointing to gmsra.local become root-relative on any client
+    function sanitizeLocalLinks() {
+      $('a[href*="gmsra.local"]').each(function() {
+        const href = $(this).attr('href');
+        if (href) {
+          const clean = href.replace(/^https?:\/\/(?:www\.)?gmsra\.local(?::\d+)?/i, '') || '/';
+          $(this).attr('href', clean);
+        }
+      });
+    }
+    sanitizeLocalLinks();
+
+    $(document).on('click', 'a[href*="gmsra.local"]', function() {
+      const href = $(this).attr('href');
+      if (href) {
+        const clean = href.replace(/^https?:\/\/(?:www\.)?gmsra\.local(?::\d+)?/i, '') || '/';
+        $(this).attr('href', clean);
+      }
+    });
+
     // Back to top button
     const $backToTop = $('#back-to-top');
     $(window).on('scroll', function() {
