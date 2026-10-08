@@ -130,9 +130,10 @@ function gmsra_make_url_relative( $url ) {
 		return $url;
 	}
 
-	// Remove local domains
+	// Remove local domains and raw server IP
 	$url = preg_replace( '#^https?://(?:www\.)?gmsra\.local(?::\d+)?#i', '', $url );
 	$url = preg_replace( '#^https?://(?:localhost|127\.0\.0\.1)(?::\d+)?#i', '', $url );
+	$url = preg_replace( '#^https?://5\.161\.161\.222(?::\d+)?#i', '', $url );
 
 	// Remove current HTTP host if matching
 	if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
@@ -159,7 +160,7 @@ function gmsra_make_url_relative( $url ) {
 }
 
 /**
- * Dynamically replace gmsra.local / localhost with the requesting host and port.
+ * Dynamically replace gmsra.local / localhost / server IP with the requesting host and port.
  */
 function gmsra_dynamic_url( $url ) {
 	if ( empty( $url ) || ! is_string( $url ) ) {
@@ -173,6 +174,7 @@ function gmsra_dynamic_url( $url ) {
 		$current_base = $proto . $_SERVER['HTTP_HOST'];
 		$url = preg_replace( '#^https?://(?:www\.)?gmsra\.local(?::\d+)?#i', $current_base, $url );
 		$url = preg_replace( '#^https?://(?:localhost|127\.0\.0\.1)(?::\d+)?#i', $current_base, $url );
+		$url = preg_replace( '#^https?://5\.161\.161\.222(?::\d+)?#i', $current_base, $url );
 	}
 	return $url;
 }
@@ -659,5 +661,31 @@ add_filter( 'redirect_canonical', function( $redirect_url ) {
 	}
 	return $redirect_url;
 }, 999 );
+
+/**
+ * Filter post content, excerpts, and widget text to ensure internal URLs
+ * (images, uploads, theme assets, and internal links) are root-relative or
+ * match the current host and protocol.
+ * This guarantees images never break due to mixed-content blocking (e.g. when content contains
+ * http://5.161.161.222:8080 or http://gmsra.local on an HTTPS site).
+ */
+function gmsra_clean_content_urls( $content ) {
+	if ( empty( $content ) || ! is_string( $content ) ) {
+		return $content;
+	}
+
+	$pattern = '#(src|href|srcset)=["\']https?://(?:(?:www\.)?gmsra\.local|localhost|127\.0\.0\.1|5\.161\.161\.222)(?::\d+)?(/[^"\']*)?["\']#i';
+	$content = preg_replace_callback( $pattern, function( $matches ) {
+		$attr = $matches[1];
+		$path = ! empty( $matches[2] ) ? $matches[2] : '/';
+		return $attr . '="' . esc_url( $path ) . '"';
+	}, $content );
+
+	return $content;
+}
+add_filter( 'the_content', 'gmsra_clean_content_urls', 999 );
+add_filter( 'the_excerpt', 'gmsra_clean_content_urls', 999 );
+add_filter( 'widget_text', 'gmsra_clean_content_urls', 999 );
+
 
 

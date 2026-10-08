@@ -141,8 +141,8 @@ get_header(); ?>
 			);
 			foreach ( $gallery_images as $img ) :
 			?>
-				<div class="gallery-item" tabindex="0" role="button" aria-label="View photo">
-					<img src="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/' . $img ) ); ?>" alt="GMSRA Summer BBQ Photo" loading="lazy">
+				<div class="gallery-item" tabindex="0" role="button" aria-label="View photo" data-full="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/' . $img ) ); ?>">
+					<img src="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/thumbs/' . $img ) ); ?>" alt="GMSRA Summer BBQ Photo" loading="lazy" width="600" height="400">
 				</div>
 			<?php endforeach; ?>
 		</div>

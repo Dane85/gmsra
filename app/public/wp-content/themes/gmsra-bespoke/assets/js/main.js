@@ -60,23 +60,31 @@
       }
     });
 
-    // Ensure all internal links pointing to gmsra.local become root-relative on any client
-    function sanitizeLocalLinks() {
-      $('a[href*="gmsra.local"]').each(function() {
+    // Ensure all internal links and images pointing to gmsra.local or raw server IP become root-relative
+    function sanitizeLocalUrls() {
+      const urlPattern = /^https?:\/\/(?:(?:www\.)?gmsra\.local|5\.161\.161\.222)(?::\d+)?/i;
+
+      $('a[href*="gmsra.local"], a[href*="5.161.161.222"]').each(function() {
         const href = $(this).attr('href');
         if (href) {
-          const clean = href.replace(/^https?:\/\/(?:www\.)?gmsra\.local(?::\d+)?/i, '') || '/';
-          $(this).attr('href', clean);
+          $(this).attr('href', href.replace(urlPattern, '') || '/');
+        }
+      });
+
+      $('img[src*="gmsra.local"], img[src*="5.161.161.222"]').each(function() {
+        const src = $(this).attr('src');
+        if (src) {
+          $(this).attr('src', src.replace(urlPattern, '') || '/');
         }
       });
     }
-    sanitizeLocalLinks();
+    sanitizeLocalUrls();
 
-    $(document).on('click', 'a[href*="gmsra.local"]', function() {
+    $(document).on('click', 'a[href*="gmsra.local"], a[href*="5.161.161.222"]', function() {
+      const urlPattern = /^https?:\/\/(?:(?:www\.)?gmsra\.local|5\.161\.161\.222)(?::\d+)?/i;
       const href = $(this).attr('href');
       if (href) {
-        const clean = href.replace(/^https?:\/\/(?:www\.)?gmsra\.local(?::\d+)?/i, '') || '/';
-        $(this).attr('href', clean);
+        $(this).attr('href', href.replace(urlPattern, '') || '/');
       }
     });
 
@@ -169,36 +177,141 @@
       });
     });
 
-    // Accessible Lightbox for Photo Gallery
+    // Accessible & Interactive Lightbox for Photo Gallery
     const $galleryItems = $('.gallery-item');
     if ($galleryItems.length > 0) {
-      // Build modal
+      let currentIndex = 0;
+
+      // Build accessible modal
       const modalHtml = `
-        <div id="gmsra-lightbox" class="lightbox-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,10,25,0.92); z-index:99999; justify-content:center; align-items:center; padding:1.5rem;">
-          <button class="lightbox-close" style="position:absolute; top:20px; right:25px; background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; line-height:1;">&times;</button>
-          <img class="lightbox-img" src="" alt="Enlarged photo" style="max-width:92%; max-height:88%; object-fit:contain; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div id="gmsra-lightbox" class="gmsra-lightbox" role="dialog" aria-modal="true" aria-label="Photo Lightbox">
+          <div class="lightbox-topbar">
+            <span class="lightbox-counter">Photo 1 of ${$galleryItems.length}</span>
+            <button class="lightbox-close-btn" aria-label="Close photo gallery">&times; Close</button>
+          </div>
+          <button class="lightbox-nav-btn lightbox-prev" aria-label="Previous photo">&#10094;</button>
+          <div class="lightbox-stage">
+            <img class="lightbox-img" src="" alt="Enlarged GMSRA Photo">
+          </div>
+          <button class="lightbox-nav-btn lightbox-next" aria-label="Next photo">&#10095;</button>
         </div>
       `;
       $('body').append(modalHtml);
 
       const $lightbox = $('#gmsra-lightbox');
       const $lightboxImg = $lightbox.find('.lightbox-img');
+      const $lightboxCounter = $lightbox.find('.lightbox-counter');
 
+      function cleanUrl(url) {
+        if (!url) return '';
+        return url.replace(/^https?:\/\/(?:(?:www\.)?gmsra\.local|5\.161\.161\.222)(?::\d+)?/i, '') || '/';
+      }
+
+      function showPhoto(index) {
+        if (index < 0) {
+          index = $galleryItems.length - 1;
+        } else if (index >= $galleryItems.length) {
+          index = 0;
+        }
+        currentIndex = index;
+
+        const $currentItem = $galleryItems.eq(currentIndex);
+        let targetSrc = $currentItem.attr('data-full') || $currentItem.find('img').attr('src');
+        targetSrc = cleanUrl(targetSrc);
+
+        $lightboxImg.css('opacity', 0.4);
+        $lightboxImg.attr('src', targetSrc).on('load', function() {
+          $(this).css('opacity', 1);
+        });
+        // In case cached
+        if ($lightboxImg[0] && $lightboxImg[0].complete) {
+          $lightboxImg.css('opacity', 1);
+        }
+
+        $lightboxCounter.text(`Photo ${currentIndex + 1} of ${$galleryItems.length}`);
+      }
+
+      function openLightbox(index) {
+        showPhoto(index);
+        $lightbox.addClass('active').hide().fadeIn(200);
+        $('body').css('overflow', 'hidden');
+      }
+
+      function closeLightbox() {
+        $lightbox.fadeOut(200, function() {
+          $lightbox.removeClass('active');
+          $('body').css('overflow', '');
+          $lightboxImg.attr('src', '');
+        });
+      }
+
+      // Click & Keyboard on gallery items
       $galleryItems.on('click', function() {
-        const fullSrc = $(this).find('img').attr('src');
-        $lightboxImg.attr('src', fullSrc);
-        $lightbox.css('display', 'flex').hide().fadeIn(200);
+        const idx = $galleryItems.index(this);
+        openLightbox(idx);
       });
 
-      $lightbox.on('click', function(e) {
-        if ($(e.target).is('#gmsra-lightbox') || $(e.target).hasClass('lightbox-close')) {
-          $lightbox.fadeOut(200);
+      $galleryItems.on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const idx = $galleryItems.index(this);
+          openLightbox(idx);
         }
       });
 
+      // Lightbox navigation buttons
+      $lightbox.find('.lightbox-prev').on('click', function(e) {
+        e.stopPropagation();
+        showPhoto(currentIndex - 1);
+      });
+
+      $lightbox.find('.lightbox-next').on('click', function(e) {
+        e.stopPropagation();
+        showPhoto(currentIndex + 1);
+      });
+
+      $lightbox.find('.lightbox-close-btn').on('click', function(e) {
+        e.stopPropagation();
+        closeLightbox();
+      });
+
+      // Click outside image closes lightbox
+      $lightbox.on('click', function(e) {
+        if ($(e.target).is('#gmsra-lightbox') || $(e.target).is('.lightbox-stage')) {
+          closeLightbox();
+        }
+      });
+
+      // Global keyboard events
       $(document).on('keydown', function(e) {
-        if (e.key === 'Escape' && $lightbox.is(':visible')) {
-          $lightbox.fadeOut(200);
+        if (!$lightbox.hasClass('active')) return;
+
+        if (e.key === 'Escape') {
+          closeLightbox();
+        } else if (e.key === 'ArrowLeft') {
+          showPhoto(currentIndex - 1);
+        } else if (e.key === 'ArrowRight') {
+          showPhoto(currentIndex + 1);
+        }
+      });
+
+      // Mobile Touch Swipe support
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      $lightbox.on('touchstart', function(e) {
+        touchStartX = e.originalEvent.changedTouches[0].screenX;
+      });
+
+      $lightbox.on('touchend', function(e) {
+        touchEndX = e.originalEvent.changedTouches[0].screenX;
+        const diffX = touchEndX - touchStartX;
+        if (Math.abs(diffX) > 45) {
+          if (diffX < 0) {
+            showPhoto(currentIndex + 1); // Swipe left -> Next
+          } else {
+            showPhoto(currentIndex - 1); // Swipe right -> Prev
+          }
         }
       });
     }
