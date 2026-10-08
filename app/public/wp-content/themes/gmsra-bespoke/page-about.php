@@ -98,6 +98,38 @@ get_header(); ?>
 			<p class="section-desc">A look back at some of our wonderful gatherings, presentations, and social events. Click any photo to enlarge.</p>
 		</div>
 
+		<!-- Featured Golf Tournament Event Recap Banner -->
+		<div class="event-recap-banner">
+			<div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
+				<div style="font-size: 2.2rem; line-height: 1;">⛳</div>
+				<div style="flex: 1; min-width: 260px;">
+					<span class="top-notice-badge" style="background: var(--gmsra-blue); margin-bottom: 0.5rem; display: inline-block;">Annual Tournament Highlights</span>
+					<h3 style="font-size: 1.4rem; margin-bottom: 0.75rem; color: var(--gmsra-navy);">Annual Vic Pratt Memorial Golf Tournament</h3>
+					<p style="color: var(--gmsra-text-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1rem;">
+						Our annual tournament at the links featured great weather, outstanding scores, and fantastic fellowship! Congratulations to First Place Champions Team #10 (Paul McIntyre, Mitch Hancock, Dale Junkin &amp; Cory McGraw with a score of -9) &mdash; marking Paul McIntyre's 11th tournament trophy win, accomplished alongside his two grandsons &mdash; and Second Place Runners-Up Team #8 (Randy Giroux, Steve Campbell, Dave Holding &amp; Scott Rundle at -7).
+					</p>
+					<a href="<?php echo esc_url( home_url( '/annual-vic-pratt-memorial-golf-tournament-results/' ) ); ?>" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.45rem 1rem;">View Full Tournament Results &amp; Skins &rarr;</a>
+				</div>
+			</div>
+		</div>
+
+		<div class="gallery-grid" style="margin-bottom: 3.5rem;">
+			<?php
+			$golf_images = array(
+				'golf-2026-01.jpg',
+				'golf-2026-02.jpg',
+				'golf-2026-03.jpg',
+				'golf-2026-04.jpg',
+				'golf-2026-05.jpg',
+			);
+			foreach ( $golf_images as $g_img ) :
+			?>
+				<div class="gallery-item" tabindex="0" role="button" aria-label="View photo" data-full="<?php echo esc_url( gmsra_asset( 'images/golf-2026/' . $g_img ) ); ?>">
+					<img src="<?php echo esc_url( gmsra_asset( 'images/golf-2026/thumbs/' . $g_img ) ); ?>" alt="Vic Pratt Memorial Golf Tournament" loading="lazy" width="600" height="450">
+				</div>
+			<?php endforeach; ?>
+		</div>
+
 		<!-- Featured BBQ Event Recap Banner -->
 		<div class="event-recap-banner">
 			<div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
@@ -105,9 +137,10 @@ get_header(); ?>
 				<div style="flex: 1; min-width: 260px;">
 					<span class="top-notice-badge" style="background: var(--gmsra-blue); margin-bottom: 0.5rem; display: inline-block;">Annual Gathering Recap</span>
 					<h3 style="font-size: 1.4rem; margin-bottom: 0.75rem; color: var(--gmsra-navy);">Annual GMSRA Summer Picnic &amp; BBQ</h3>
-					<p style="color: var(--gmsra-text-muted); font-size: 1.05rem; line-height: 1.7; margin: 0;">
+					<p style="color: var(--gmsra-text-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1rem;">
 						It was another great turnout for the picnic again this year. We had a total of 112 RSVPs this year and we were pretty close to that at meal time. Thank you for the RSVPs so we could gauge the number of meals. The Legion Auxiliary did a great job of meal preparation and table service, including coffee and tea. It was an enjoyable meal for all.
 					</p>
+					<a href="<?php echo esc_url( home_url( '/annual-gmsra-summer-picnic-bbq-another-great-turnout/' ) ); ?>" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.45rem 1rem;">View Full Picnic Article &rarr;</a>
 				</div>
 			</div>
 		</div>
