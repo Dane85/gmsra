@@ -126,6 +126,11 @@ get_header(); ?>
 				'golf-2026-08.jpg',
 				'golf-2026-09.jpg',
 				'golf-2026-10.jpg',
+				'golf-2026-11.jpg',
+				'golf-2026-12.jpg',
+				'golf-2026-13.jpg',
+				'golf-2026-14.jpg',
+				'golf-2026-15.jpg',
 			);
 			foreach ( $golf_images as $g_img ) :
 			?>
