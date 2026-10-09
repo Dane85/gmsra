@@ -10,6 +10,9 @@
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="profile" href="https://gmpg.org/xfn/11">
+	<link rel="icon" type="image/png" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
+	<link rel="shortcut icon" type="image/png" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
+	<link rel="apple-touch-icon" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

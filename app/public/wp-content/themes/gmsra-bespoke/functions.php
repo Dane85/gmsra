@@ -690,5 +690,16 @@ add_filter( 'the_content', 'gmsra_clean_content_urls', 999 );
 add_filter( 'the_excerpt', 'gmsra_clean_content_urls', 999 );
 add_filter( 'widget_text', 'gmsra_clean_content_urls', 999 );
 
+/**
+ * Custom site icon fallback to GMSRA logo.
+ */
+function gmsra_site_icon_url( $url ) {
+	if ( empty( $url ) ) {
+		return gmsra_asset( 'images/GMSRA-Logo-RB.png' );
+	}
+	return $url;
+}
+add_filter( 'get_site_icon_url', 'gmsra_site_icon_url' );
+
 
 
