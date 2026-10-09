@@ -15,7 +15,7 @@ get_header(); ?>
 				<span>📝</span> Membership Registration &amp; Renewal
 			</div>
 			<h1 class="hero-title">Join or Renew Your Membership</h1>
-			<p class="hero-subtitle">Welcoming All General Motors Oshawa Salaried Retirees &amp; Spouses</p>
+			<p class="hero-subtitle">Welcoming All General Motors of Canada Salaried Retirees &amp; Spouses</p>
 			<p class="hero-lead">Fill out our convenient online application below, or download the printable PDF to mail or bring to our next meeting.</p>
 		</div>
 	</div>
@@ -150,7 +150,7 @@ get_header(); ?>
 						<h4 style="font-size: 1rem; color: var(--gmsra-blue); margin-bottom: 0.25rem;">1. Interac e-Transfer</h4>
 						<p style="font-size: 0.92rem; color: var(--gmsra-text-muted);">
 							Send your e-transfer to:<br>
-							📧 <a href="mailto:GMSRA@gmsalariedretirees.com" style="font-weight: 700; color: var(--gmsra-blue); word-break: break-all;">GMSRA@gmsalariedretirees.com</a><br>
+							📧 <a href="mailto:bgboddy@yahoo.ca" style="font-weight: 700; color: var(--gmsra-blue); word-break: break-all;">bgboddy@yahoo.ca</a><br>
 							<small style="color: #64748B;">Please include applicant's full name in the e-transfer message.</small>
 						</p>
 					</div>
@@ -176,7 +176,7 @@ get_header(); ?>
 				<!-- Eligibility Notice -->
 				<div style="margin-top: 1.5rem; background: var(--gmsra-blue-light); border: 1px solid #BFDBFE; border-radius: var(--gmsra-radius); padding: 1.25rem;">
 					<h4 style="font-size: 0.95rem; color: var(--gmsra-blue); margin-bottom: 0.25rem;">Who Can Join?</h4>
-					<p style="font-size: 0.88rem; color: var(--gmsra-navy); margin: 0;">All GM Oshawa salaried retirees and their spouses or partners are welcome to join. We look forward to meeting you!</p>
+					<p style="font-size: 0.88rem; color: var(--gmsra-navy); margin: 0;">All GM of Canada salaried retirees and their spouses or partners are welcome to join. We look forward to meeting you!</p>
 				</div>
 			</div>
 		</div>

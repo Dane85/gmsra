@@ -14,7 +14,7 @@
 				<!-- Col 1: About -->
 				<div class="footer-col">
 					<h4>GM Salaried Retirees Association</h4>
-					<p>Dedicated to fostering fellowship, engagement, and lifelong connection among retired salaried employees of General Motors Oshawa and their spouses since 1982.</p>
+					<p>Dedicated to fostering fellowship, engagement, and lifelong connection among retired salaried employees of General Motors of Canada and their spouses since 1982.</p>
 					<p style="margin-top: 1rem; font-size: 0.9rem; color: #94A3B8;">
 						<strong>Mailing Address:</strong><br>
 						GMSRA, P.O. Box 2100<br>
@@ -68,7 +68,7 @@
 		<div class="container">
 			<div class="footer-bottom-inner">
 				<p>&copy; <?php echo esc_html( date( 'Y' ) ); ?> General Motors Salaried Retirees Association (GMSRA). All rights reserved.</p>
-				<p>Serving GM Oshawa Retirees &amp; Spouses</p>
+				<p>Serving GM of Canada Retirees &amp; Spouses</p>
 			</div>
 		</div>
 	</div>

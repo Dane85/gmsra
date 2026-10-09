@@ -15,8 +15,8 @@ get_header(); ?>
 				<span>📖</span> Established 1982
 			</div>
 			<h1 class="hero-title">About GMSRA</h1>
-			<p class="hero-subtitle">Connecting GM Oshawa Salaried Retirees for Over 40 Years</p>
-			<p class="hero-lead">The General Motors Salaried Retirees Association (GMSRA) is a non-profit, member-driven organization dedicated to building and maintaining a strong community among retired salaried employees of General Motors Oshawa and their spouses or partners.</p>
+			<p class="hero-subtitle">Connecting GM of Canada Salaried Retirees for Over 40 Years</p>
+			<p class="hero-lead">The General Motors Salaried Retirees Association (GMSRA) is a non-profit, member-driven organization dedicated to building and maintaining a strong community among retired salaried employees of General Motors of Canada and their spouses or partners.</p>
 		</div>
 	</div>
 </section>

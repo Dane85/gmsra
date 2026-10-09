@@ -12,11 +12,11 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>🏆</span> Serving GM Oshawa Salaried Retirees Since 1982
+				<span>🏆</span> Serving GM of Canada Salaried Retirees Since 1982
 			</div>
 			<h1 class="hero-title">Reconnect. Engage.<br>Enjoy Your Retirement.</h1>
 			<p class="hero-subtitle">General Motors Salaried Retirees Association (GMSRA)</p>
-			<p class="hero-lead">Join an active, welcoming community of former GM Oshawa salaried employees and their spouses. Share memories, build lasting friendships, and participate in enriching events all year long.</p>
+			<p class="hero-lead">Join an active, welcoming community of former GM of Canada salaried employees and their spouses. Share memories, build lasting friendships, and participate in enriching events all year long.</p>
 			<div class="hero-actions">
 				<a href="<?php echo esc_url( home_url( '/membership-form/' ) ); ?>" class="btn btn-primary btn-lg">
 					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
@@ -34,7 +34,10 @@ get_header(); ?>
 $next_event = gmsra_get_next_calendar_event();
 $next_title = $next_event ? $next_event['title'] : 'Monthly Membership Meeting';
 $next_date  = ( $next_event && ( $next_event['start'] instanceof DateTime ) ) ? $next_event['start']->format( 'l, F j, Y \a\t g:i A' ) : gmsra_get_next_meeting_date() . ' at 1:00 PM';
-$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON';
+$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
+if ( ! empty( $next_loc ) && stripos( $next_loc, 'Royal Canadian Legion' ) === false ) {
+	$next_loc = 'Royal Canadian Legion, ' . $next_loc;
+}
 ?>
 <!-- Next Meeting Floating Banner -->
 <div class="container">
@@ -91,9 +94,9 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 			</div>
 
 			<div class="card">
-				<div class="card-icon">💃</div>
-				<h3 class="card-title">Social Events &amp; Dances</h3>
-				<p class="card-desc">Seasonal lunches, holiday parties, and evening dances that bring our community together to celebrate lifelong friendships.</p>
+				<div class="card-icon">🎊</div>
+				<h3 class="card-title">Social &amp; Special Events</h3>
+				<p class="card-desc">Seasonal lunches, holiday parties, and friendly gatherings that bring our community together to celebrate lifelong friendships.</p>
 			</div>
 
 			<div class="card">
@@ -118,9 +121,9 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 		<div class="split-grid">
 			<div class="split-content">
 				<span class="section-tag">About Our Association</span>
-				<h2>Fostering Fellowship in Oshawa Since 1982</h2>
-				<p>The General Motors Salaried Retirees Association (GMSRA) was founded to preserve the extraordinary bonds forged over decades of service at General Motors Oshawa.</p>
-				<p>Whether you spent your career in engineering, manufacturing, finance, administration, or management, GMSRA is your home to stay in touch, support one another, and celebrate the shared legacy that made GM Oshawa legendary.</p>
+				<h2>Fostering Fellowship in Canada Since 1982</h2>
+				<p>The General Motors Salaried Retirees Association (GMSRA) was founded to preserve the extraordinary bonds forged over decades of service at General Motors of Canada.</p>
+				<p>Whether you spent your career in engineering, manufacturing, finance, administration, or management, GMSRA is your home to stay in touch, support one another, and celebrate the shared legacy that made GM of Canada legendary.</p>
 				<div class="pillars-list">
 					<div class="pillar-item">
 						<h4>🤝 Community</h4>
@@ -136,7 +139,7 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 				</div>
 			</div>
 			<div class="split-image">
-				<img src="<?php echo esc_url( gmsra_asset( 'images/4be54daf-b3bd-4883-acfa-22c08caeab32.jpg' ) ); ?>" alt="GM Retirees Gathering in Oshawa">
+				<img src="<?php echo esc_url( gmsra_asset( 'images/4be54daf-b3bd-4883-acfa-22c08caeab32.jpg' ) ); ?>" alt="GM Retirees Gathering in Canada">
 			</div>
 		</div>
 	</div>
@@ -148,7 +151,7 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 		<div class="section-header">
 			<span class="section-tag">Join Our Family</span>
 			<h2 class="section-title">How to Join or Renew Your Membership</h2>
-			<p class="section-desc">All GM Oshawa salaried retirees and their spouses or partners are warmly welcomed. Joining is simple, affordable, and takes just a few minutes.</p>
+			<p class="section-desc">All GM of Canada salaried retirees and their spouses or partners are warmly welcomed. Joining is simple, affordable, and takes just a few minutes.</p>
 		</div>
 
 		<div class="join-options-grid">
@@ -163,7 +166,7 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 			<div class="join-card">
 				<div class="join-step-number">2</div>
 				<h3>By Mail or E-Transfer</h3>
-				<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">Download and print the application form, then mail your completed form and cheque, or send an Interac e-transfer to <strong>GMSRA@gmsalariedretirees.com</strong>.</p>
+				<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">Download and print the application form, then mail your completed form and cheque, or send an Interac e-transfer to <strong>bgboddy@yahoo.ca</strong>.</p>
 				<a href="<?php echo esc_url( gmsra_asset( 'images/membership-application_fill-in_revised_2024Apr27.pdf' ) ); ?>" target="_blank" rel="noopener" class="btn btn-secondary" style="margin-top: auto;">Download Printable PDF</a>
 			</div>
 

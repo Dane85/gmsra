@@ -280,7 +280,7 @@ function gmsra_handle_membership_submission() {
 	$user_message = "Hello {$first_name},\n\n" .
 		"Thank you for submitting your membership application for the General Motors Salaried Retirees Association (GMSRA)!\n\n" .
 		"To complete your membership registration, please submit your payment:\n" .
-		"1. By Interac e-Transfer to: GMSRA@gmsalariedretirees.com\n" .
+		"1. By Interac e-Transfer to: bgboddy@yahoo.ca\n" .
 		"2. By Cheque mailed to: GMSRA, P.O. Box 2100, Oshawa, Ontario L1H 7V4\n" .
 		"3. In Person: At our next monthly meeting (2nd Tuesday of each month at 1:00 PM, Sept–Dec and March–May; June features our Vic Pratt Golf Tournament; no meetings in Jan, Feb, July, or August) at Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7.\n\n" .
 		"We look forward to welcoming you!\n\n" .
@@ -465,6 +465,9 @@ function gmsra_parse_ics( $ics_content ) {
 				} elseif ( $prop === 'DTEND' ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'LOCATION' ) {
+					if ( ! empty( $val ) && stripos( $val, 'Royal Canadian Legion' ) === false ) {
+						$val = 'Royal Canadian Legion, ' . $val;
+					}
 					$current_event['location'] = $val;
 				} elseif ( $prop === 'DESCRIPTION' ) {
 					$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );

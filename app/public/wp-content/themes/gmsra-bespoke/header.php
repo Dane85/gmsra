@@ -21,7 +21,10 @@
 $next_event = gmsra_get_next_calendar_event();
 $next_title = $next_event ? $next_event['title'] : 'Monthly Membership Meeting';
 $next_date  = ( $next_event && ( $next_event['start'] instanceof DateTime ) ) ? $next_event['start']->format( 'l, F j, Y \a\t g:i A' ) : gmsra_get_next_meeting_date() . ' at 1:00 PM';
-$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St S, Oshawa, ON';
+$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
+if ( ! empty( $next_loc ) && stripos( $next_loc, 'Royal Canadian Legion' ) === false ) {
+	$next_loc = 'Royal Canadian Legion, ' . $next_loc;
+}
 ?>
 <!-- Top Notification Bar -->
 <div class="top-notice-bar">
@@ -46,7 +49,7 @@ $next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Ro
 				<img src="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>" alt="General Motors Salaried Retirees Association Logo" class="brand-logo" width="64" height="64">
 				<div class="brand-titles">
 					<span class="brand-title">GMSRA</span>
-					<span class="brand-tagline">GM Salaried Retirees Association • Oshawa</span>
+					<span class="brand-tagline">GM of Canada Salaried Retirees Association</span>
 				</div>
 			</a>
 
