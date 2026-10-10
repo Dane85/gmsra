@@ -128,6 +128,15 @@
             $alert.addClass('alert-success').html(res.data.message).fadeIn();
             $form[0].reset();
             $('html, body').animate({ scrollTop: $alert.offset().top - 120 }, 300);
+
+            // Google Analytics 4: Track successful membership submission
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'generate_lead', {
+                event_category: 'Membership',
+                event_label: 'Online Application Submitted',
+                value: 20
+              });
+            }
           } else {
             $alert.addClass('alert-error').html(res.data.message).fadeIn();
             $('html, body').animate({ scrollTop: $alert.offset().top - 120 }, 300);
@@ -166,6 +175,14 @@
             $alert.addClass('alert-success').html(res.data.message).fadeIn();
             $form[0].reset();
             $('html, body').animate({ scrollTop: $alert.offset().top - 120 }, 300);
+
+            // Google Analytics 4: Track contact inquiry submission
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'contact', {
+                event_category: 'Engagement',
+                event_label: 'Contact Message Submitted'
+              });
+            }
           } else {
             $alert.addClass('alert-error').html(res.data.message).fadeIn();
           }
@@ -315,5 +332,38 @@
         }
       });
     }
+    // Google Analytics 4: Track PDF Application Downloads
+    $('a[href$=".pdf"]').on('click', function() {
+      if (typeof window.gtag === 'function') {
+        const href = $(this).attr('href') || '';
+        const filename = href.substring(href.lastIndexOf('/') + 1);
+        window.gtag('event', 'file_download', {
+          file_name: filename,
+          file_extension: 'pdf',
+          link_url: href
+        });
+      }
+    });
+
+    // Google Analytics 4: Track Direct Email Inquiries
+    $('a[href^="mailto:"]').on('click', function() {
+      if (typeof window.gtag === 'function') {
+        const email = ($(this).attr('href') || '').replace('mailto:', '').split('?')[0];
+        window.gtag('event', 'contact_click', {
+          event_category: 'Outbound Contact',
+          event_label: email
+        });
+      }
+    });
+
+    // Google Analytics 4: Track Join / Renew Navigation CTAs
+    $('a[href*="membership-form"]').on('click', function() {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'join_renew_cta_click', {
+          event_category: 'Conversion Navigation',
+          event_label: $(this).text().trim() || 'Join / Renew'
+        });
+      }
+    });
   });
 })(jQuery);

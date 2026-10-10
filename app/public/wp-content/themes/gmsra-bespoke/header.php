@@ -13,6 +13,16 @@
 	<link rel="icon" type="image/png" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
 	<link rel="shortcut icon" type="image/png" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
 	<link rel="apple-touch-icon" href="<?php echo esc_url( gmsra_asset( 'images/GMSRA-Logo-RB.png' ) ); ?>">
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-L4N05XBCYQ"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'G-L4N05XBCYQ');
+	</script>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
