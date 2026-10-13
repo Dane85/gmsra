@@ -2,11 +2,11 @@
 
 Official website and bespoke custom WordPress theme for the **General Motors Salaried Retirees Association (Oshawa)**.
 
-🌐 **Production Website**: [https://gmsra.durhamweb.design](https://gmsra.durhamweb.design)  
-🔌 **Direct Port Fallback**: [http://5.161.161.222:8080](http://5.161.161.222:8080)
+- 🌐 **Production Website**: [https://gmsalariedretirees.com](https://gmsalariedretirees.com)
+- 🔗 **Staging Mirror**: [https://gmsra.durhamweb.design](https://gmsra.durhamweb.design)
+- 🔌 **Direct Port Fallback**: [http://5.161.161.222:8080](http://5.161.161.222:8080)
 
 ---
-
 ## ⚡ Project Overview
 
 This repository contains the complete local development environment and custom WordPress implementation for the GMSRA website. It features a bespoke WordPress theme tailored to provide retirees and association members with an accessible, high-contrast, and intuitive digital hub for announcements, events, meeting notes, photo galleries, and membership forms.
