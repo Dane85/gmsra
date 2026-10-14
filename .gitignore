@@ -23,3 +23,10 @@ $RECYCLE.BIN/
 # Editor directories
 .vscode/
 .idea/
+
+# Environment & Secret overrides
+wp-config-live.php
+wp-config-local.php
+.env
+.env.*
+

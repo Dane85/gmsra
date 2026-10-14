@@ -24,7 +24,12 @@ if ( gethostname() === 'ubuntu-2gb-ash-2' || file_exists( __DIR__ . '/wp-config-
 	/** Live server settings */
 	define( 'DB_NAME', 'gmsra_db' );
 	define( 'DB_USER', 'gmsra_user' );
-	define( 'DB_PASSWORD', 'GmsraPass2026' );
+	if ( file_exists( __DIR__ . '/wp-config-live.php' ) ) {
+		require_once __DIR__ . '/wp-config-live.php';
+	}
+	if ( ! defined( 'DB_PASSWORD' ) ) {
+		define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) ?: '' );
+	}
 	define( 'DB_HOST', 'localhost' );
 } else {
 	/** Local development settings */
