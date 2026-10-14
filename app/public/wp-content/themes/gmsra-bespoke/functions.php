@@ -351,6 +351,13 @@ add_filter( 'excerpt_more', 'gmsra_excerpt_more' );
    LIVE CALENDAR SYNC ENGINE (Google / Outlook / iCal / ICS)
    ========================================================================== */
 
+if ( ! defined( 'GMSRA_OFFICIAL_CALENDAR_HTML_URL' ) ) {
+	define( 'GMSRA_OFFICIAL_CALENDAR_HTML_URL', 'https://outlook.office365.com/owa/calendar/02b45c3d8a9e44c29a2c4970481f4f1c@gmsalariedretirees.com/17a6eaa77be34ef6bafc7d83c29438687678221603392914805/calendar.html' );
+}
+if ( ! defined( 'GMSRA_OFFICIAL_CALENDAR_ICS_URL' ) ) {
+	define( 'GMSRA_OFFICIAL_CALENDAR_ICS_URL', 'https://outlook.office365.com/owa/calendar/02b45c3d8a9e44c29a2c4970481f4f1c@gmsalariedretirees.com/17a6eaa77be34ef6bafc7d83c29438687678221603392914805/calendar.ics' );
+}
+
 /**
  * Register Calendar Setting in WP Admin
  */
@@ -358,7 +365,7 @@ function gmsra_register_calendar_settings() {
 	register_setting( 'general', 'gmsra_calendar_ics_url', array(
 		'type'              => 'string',
 		'sanitize_callback' => 'esc_url_raw',
-		'default'           => 'https://calendar.google.com/calendar/ical/f0681497eaaaa3d2357f84868fa6a89a6db24f3ba4a900cbe17fb6e14827f3fd%40group.calendar.google.com/public/basic.ics',
+		'default'           => GMSRA_OFFICIAL_CALENDAR_ICS_URL,
 	) );
 
 	add_settings_section(
@@ -379,14 +386,15 @@ function gmsra_register_calendar_settings() {
 add_action( 'admin_init', 'gmsra_register_calendar_settings' );
 
 function gmsra_calendar_section_callback() {
-	echo '<p>Connect the live Google Calendar or external calendar feed. Events added to the calendar will automatically synchronize and display across the website.</p>';
+	echo '<p>Connect the live Microsoft 365 or external calendar feed. Events added to the calendar will automatically synchronize and display across the website.</p>';
 }
 
 function gmsra_calendar_ics_url_callback() {
-	$value = get_option( 'gmsra_calendar_ics_url', 'https://calendar.google.com/calendar/ical/f0681497eaaaa3d2357f84868fa6a89a6db24f3ba4a900cbe17fb6e14827f3fd%40group.calendar.google.com/public/basic.ics' );
-	echo '<input type="url" name="gmsra_calendar_ics_url" value="' . esc_attr( $value ) . '" class="regular-text" style="width: 100%; max-width: 600px;" placeholder="https://calendar.google.com/.../basic.ics">';
-	echo '<p class="description">Active feed: <strong>GMSRA EVENTS (Google Calendar)</strong>.<br>';
-	echo '<em>Tip: To refresh the calendar feed immediately after making changes in Google Calendar, <a href="' . esc_url( admin_url( 'options-general.php?gmsra_refresh_calendar=1' ) ) . '">click here to refresh cache now</a>.</em></p>';
+	$value = get_option( 'gmsra_calendar_ics_url', GMSRA_OFFICIAL_CALENDAR_ICS_URL );
+	echo '<input type="url" name="gmsra_calendar_ics_url" value="' . esc_attr( $value ) . '" class="regular-text" style="width: 100%; max-width: 600px;" placeholder="' . esc_attr( GMSRA_OFFICIAL_CALENDAR_ICS_URL ) . '">';
+	echo '<p class="description">Active feed: <strong>Official GMSRA Microsoft 365 Calendar (gmsalariedretirees.com)</strong>.<br>';
+	echo '<a href="' . esc_url( GMSRA_OFFICIAL_CALENDAR_HTML_URL ) . '" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 4px;">📅 View Live Outlook Calendar in New Tab &rarr;</a><br>';
+	echo '<em>Tip: To refresh the calendar feed immediately after making changes in Microsoft 365, <a href="' . esc_url( admin_url( 'options-general.php?gmsra_refresh_calendar=1' ) ) . '">click here to refresh cache now</a>.</em></p>';
 
 	if ( isset( $_GET['gmsra_refresh_calendar'] ) ) {
 		delete_transient( 'gmsra_calendar_events_cache' );
@@ -399,7 +407,10 @@ function gmsra_calendar_ics_url_callback() {
  */
 function gmsra_parse_ics_date( $date_str ) {
 	$date_str = trim( $date_str );
-	$tz_string = wp_timezone_string();
+	$tz_string = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : 'America/Toronto';
+	if ( empty( $tz_string ) || $tz_string === 'UTC' || $tz_string === '+00:00' ) {
+		$tz_string = 'America/Toronto';
+	}
 
 	if ( preg_match( '/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?/', $date_str, $m ) ) {
 		$iso = "{$m[1]}-{$m[2]}-{$m[3]}T{$m[4]}:{$m[5]}:{$m[6]}";
@@ -443,7 +454,11 @@ function gmsra_parse_ics( $ics_content ) {
 			);
 		} elseif ( $line === 'END:VEVENT' && $current_event ) {
 			if ( $current_event['start'] instanceof DateTime ) {
-				$now = new DateTime( 'now', new DateTimeZone( wp_timezone_string() ) );
+				$tz_string = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : 'America/Toronto';
+				if ( empty( $tz_string ) || $tz_string === 'UTC' || $tz_string === '+00:00' ) {
+					$tz_string = 'America/Toronto';
+				}
+				$now = new DateTime( 'now', new DateTimeZone( $tz_string ) );
 				if ( $current_event['start'] >= ( clone $now )->setTime( 0, 0, 0 ) ) {
 					$events[] = $current_event;
 				}
@@ -454,6 +469,9 @@ function gmsra_parse_ics( $ics_content ) {
 			if ( count( $parts ) === 2 ) {
 				$prop_full = strtoupper( trim( $parts[0] ) );
 				$val = trim( $parts[1] );
+
+				// Clean Microsoft-specific escaped sequences (\r, \r\n) and standard iCal escapes
+				$val = str_replace( array( '\\r', "\r" ), '', $val );
 				$val = str_replace( array( '\\,', '\\;', '\\n', '\\N' ), array( ',', ';', "\n", "\n" ), $val );
 
 				$prop = explode( ';', $prop_full )[0];
@@ -465,13 +483,22 @@ function gmsra_parse_ics( $ics_content ) {
 				} elseif ( $prop === 'DTEND' ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'LOCATION' ) {
-					if ( ! empty( $val ) && stripos( $val, 'Royal Canadian Legion' ) === false ) {
-						$val = 'Royal Canadian Legion, ' . $val;
+					if ( ! empty( $val ) ) {
+						if ( stripos( $val, 'Royal Canadian Legion' ) === false && stripos( $val, 'Legion' ) === false ) {
+							$val = 'Royal Canadian Legion, ' . $val;
+						}
+						$current_event['location'] = $val;
 					}
-					$current_event['location'] = $val;
 				} elseif ( $prop === 'DESCRIPTION' ) {
+					$val = wp_strip_all_tags( $val );
 					$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
 					$current_event['description'] = trim( $val );
+				} elseif ( $prop === 'X-ALT-DESC' ) {
+					if ( empty( $current_event['description'] ) ) {
+						$val = wp_strip_all_tags( $val );
+						$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
+						$current_event['description'] = trim( $val );
+					}
 				} elseif ( $prop === 'UID' ) {
 					$current_event['uid'] = $val;
 				}
@@ -557,13 +584,20 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 		}
 	}
 
-	$ics_url = get_option( 'gmsra_calendar_ics_url', 'https://calendar.google.com/calendar/ical/f0681497eaaaa3d2357f84868fa6a89a6db24f3ba4a900cbe17fb6e14827f3fd%40group.calendar.google.com/public/basic.ics' );
-	if ( empty( $ics_url ) ) {
-		$ics_url = 'https://calendar.google.com/calendar/ical/f0681497eaaaa3d2357f84868fa6a89a6db24f3ba4a900cbe17fb6e14827f3fd%40group.calendar.google.com/public/basic.ics';
+	$ics_url = get_option( 'gmsra_calendar_ics_url', GMSRA_OFFICIAL_CALENDAR_ICS_URL );
+	if ( empty( $ics_url ) || strpos( $ics_url, 'calendar.google.com' ) !== false ) {
+		$ics_url = GMSRA_OFFICIAL_CALENDAR_ICS_URL;
+		update_option( 'gmsra_calendar_ics_url', GMSRA_OFFICIAL_CALENDAR_ICS_URL );
 	}
+
 	if ( ! empty( $ics_url ) ) {
 		$clean_url = preg_replace( '/^webcal:\/\//i', 'https://', trim( $ics_url ) );
-		$response = wp_remote_get( $clean_url, array( 'timeout' => 8, 'sslverify' => true ) );
+		$clean_url = preg_replace( '/\/calendar\.html$/i', '/calendar.ics', $clean_url );
+		$response  = wp_remote_get( $clean_url, array(
+			'timeout'    => 10,
+			'sslverify'  => true,
+			'user-agent' => 'Mozilla/5.0 (compatible; GMSRA-Calendar-Sync/1.0)',
+		) );
 
 		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
 			$body = wp_remote_retrieve_body( $response );

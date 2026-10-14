@@ -28,6 +28,11 @@ get_header(); ?>
 			<span class="section-tag">Events &amp; Schedule</span>
 			<h2 class="section-title">Upcoming Association Gatherings</h2>
 			<p class="section-desc">Meetings take place on the <strong>2nd Tuesday of the month</strong> at 1:00 PM (doors open at 12:00 PM) during active meeting months (Sept–Dec &amp; March–May). Our June meeting is replaced with our annual <strong>Vic Pratt Memorial Golf Tournament</strong>. <em>(Please note: There are no monthly meetings in January, February, July, or August).</em></p>
+			<div style="margin-top: 1.25rem;">
+				<a href="<?php echo esc_url( GMSRA_OFFICIAL_CALENDAR_HTML_URL ); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+					📅 Open Full Official GMSRA Outlook Calendar &rarr;
+				</a>
+			</div>
 		</div>
 
 		<?php
