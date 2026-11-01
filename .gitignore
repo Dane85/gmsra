@@ -30,3 +30,8 @@ wp-config-local.php
 .env
 .env.*
 
+# Database dumps & SQL snapshots (NEVER commit user hashes, options, or member PII)
+*.sql
+*.sql.gz
+*.sql.bak
+app/sql/

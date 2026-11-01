@@ -188,7 +188,56 @@ function gmsra_asset( $path ) {
 }
 
 /**
- * Register Custom Post Type for Membership Applications (for safe admin storage)
+ * Configure Authenticated SMTP for wp_mail() & Log Delivery Errors (Zero Hardcoded Secrets)
+ */
+add_action( 'phpmailer_init', 'gmsra_configure_smtp_transport' );
+function gmsra_configure_smtp_transport( $phpmailer ) {
+	if ( defined( 'GMSRA_SMTP_HOST' ) && GMSRA_SMTP_HOST && defined( 'GMSRA_SMTP_USER' ) && GMSRA_SMTP_USER ) {
+		$phpmailer->isSMTP();
+		$phpmailer->Host       = GMSRA_SMTP_HOST;
+		$phpmailer->SMTPAuth   = true;
+		$phpmailer->Port       = defined( 'GMSRA_SMTP_PORT' ) ? (int) GMSRA_SMTP_PORT : 587;
+		$phpmailer->SMTPSecure = defined( 'GMSRA_SMTP_SECURE' ) ? GMSRA_SMTP_SECURE : 'tls';
+		$phpmailer->Username   = GMSRA_SMTP_USER;
+		$phpmailer->Password   = defined( 'GMSRA_SMTP_PASS' ) ? GMSRA_SMTP_PASS : '';
+		$from_email            = defined( 'GMSRA_SMTP_FROM' ) ? GMSRA_SMTP_FROM : GMSRA_SMTP_USER;
+		$phpmailer->setFrom( $from_email, 'General Motors Salaried Retirees Association (GMSRA)', false );
+	}
+}
+
+add_action( 'wp_mail_failed', function( $wp_error ) {
+	// Log error message without exposing any sensitive auth payload
+	error_log( '[GMSRA wp_mail_failed] ' . $wp_error->get_error_message() );
+} );
+
+/**
+ * Send executive/admin email to GMSRA@gmsalariedretirees.com with automatic fallback to Roy Ward (back.wards@sympatico.ca)
+ */
+function gmsra_send_admin_mail_with_fallback( $subject, $message, $extra_headers = array() ) {
+	$primary_email  = defined( 'GMSRA_PRIMARY_ADMIN_EMAIL' ) ? GMSRA_PRIMARY_ADMIN_EMAIL : 'GMSRA@gmsalariedretirees.com';
+	$fallback_email = defined( 'GMSRA_FALLBACK_ADMIN_EMAIL' ) ? GMSRA_FALLBACK_ADMIN_EMAIL : 'back.wards@sympatico.ca';
+
+	$headers = array_merge(
+		array( 'Content-Type: text/plain; charset=UTF-8' ),
+		$extra_headers
+	);
+
+	// Attempt primary delivery to GMSRA@gmsalariedretirees.com
+	$primary_sent = wp_mail( $primary_email, $subject, $message, $headers );
+
+	// Deliver fallback copy to Roy's email (back.wards@sympatico.ca) if primary fails or fallback routing is active
+	$fallback_sent = wp_mail(
+		$fallback_email,
+		( $primary_sent ? $subject : '[Fallback Copy] ' . $subject ),
+		$message,
+		$headers
+	);
+
+	return ( $primary_sent || $fallback_sent );
+}
+
+/**
+ * Register Custom Post Types for Membership Applications and Contact Submissions (for safe admin storage)
  */
 function gmsra_register_cpts() {
 	register_post_type(
@@ -205,8 +254,168 @@ function gmsra_register_cpts() {
 			'menu_icon'    => 'dashicons-id-alt',
 		)
 	);
+
+	register_post_type(
+		'gmsra_contact',
+		array(
+			'labels'       => array(
+				'name'          => __( 'Contact Inquiries', 'gmsra-bespoke' ),
+				'singular_name' => __( 'Contact Inquiry', 'gmsra-bespoke' ),
+			),
+			'public'       => false,
+			'show_ui'      => true,
+			'show_in_menu' => true,
+			'supports'     => array( 'title', 'editor', 'custom-fields' ),
+			'menu_icon'    => 'dashicons-email-alt',
+		)
+	);
 }
 add_action( 'init', 'gmsra_register_cpts' );
+
+/**
+ * Reusable Helper: Build and send executive + applicant confirmation emails for a Membership Application
+ */
+function gmsra_build_and_send_application_emails( $post_id ) {
+	$first_name  = get_post_meta( $post_id, '_first_name', true );
+	$last_name   = get_post_meta( $post_id, '_last_name', true );
+	$spouse      = get_post_meta( $post_id, '_spouse', true );
+	$address     = get_post_meta( $post_id, '_address', true );
+	$apt         = get_post_meta( $post_id, '_apt', true );
+	$city        = get_post_meta( $post_id, '_city', true );
+	$province    = get_post_meta( $post_id, '_province', true );
+	$postal_code = get_post_meta( $post_id, '_postal_code', true );
+	$phone       = get_post_meta( $post_id, '_phone', true );
+	$email       = get_post_meta( $post_id, '_email', true );
+	$retired     = get_post_meta( $post_id, '_date_retired', true );
+	$department  = get_post_meta( $post_id, '_department', true );
+	$involvement = get_post_meta( $post_id, '_involvement', true );
+
+	$timestamp = current_time( 'mysql' );
+
+	// 1. Executive Notification via gmsra_send_admin_mail_with_fallback()
+	$subject = "New GMSRA Membership Application: {$first_name} {$last_name}";
+	$message = "A new membership application has been submitted via the website:\n\n" .
+		"Name: {$first_name} {$last_name}\n" .
+		"Spouse/Companion: {$spouse}\n" .
+		"Address: {$address}" . ( $apt ? " Apt {$apt}" : "" ) . ", {$city}, {$province} {$postal_code}\n" .
+		"Phone: {$phone}\n" .
+		"Email: {$email}\n" .
+		"Date Retired: {$retired}\n" .
+		"GM Department: {$department}\n" .
+		"Volunteer Interest: {$involvement}\n\n" .
+		"Submitted on: {$timestamp}";
+
+	$admin_headers = array();
+	if ( ! empty( $email ) ) {
+		$admin_headers[] = 'Reply-To: ' . trim( $first_name . ' ' . $last_name ) . ' <' . $email . '>';
+	}
+
+	$admin_sent   = gmsra_send_admin_mail_with_fallback( $subject, $message, $admin_headers );
+	$admin_status = $admin_sent ? 'sent' : 'failed';
+	update_post_meta( $post_id, '_admin_email_sent_at', $timestamp );
+	update_post_meta( $post_id, '_admin_email_status', $admin_status );
+
+	// 2. Applicant Confirmation & Payment Instructions email
+	$applicant_sent   = false;
+	$applicant_status = 'skipped_empty_email';
+
+	if ( ! empty( $email ) && is_email( $email ) ) {
+		$primary_admin  = defined( 'GMSRA_PRIMARY_ADMIN_EMAIL' ) ? GMSRA_PRIMARY_ADMIN_EMAIL : 'GMSRA@gmsalariedretirees.com';
+		$fallback_admin = defined( 'GMSRA_FALLBACK_ADMIN_EMAIL' ) ? GMSRA_FALLBACK_ADMIN_EMAIL : 'back.wards@sympatico.ca';
+
+		$user_subject = 'GMSRA Membership Application Received';
+		$user_message = "Hello {$first_name},\n\n" .
+			"Thank you for submitting your membership application for the General Motors Salaried Retirees Association (GMSRA)!\n\n" .
+			"To complete your membership registration, please submit your payment:\n" .
+			"1. By Interac e-Transfer to: bgboddy@yahoo.ca\n" .
+			"2. By Cheque mailed to: GMSRA, P.O. Box 2100, Oshawa, Ontario L1H 7V4\n" .
+			"3. In Person: At our next monthly meeting (2nd Tuesday of each month at 1:00 PM, Sept–Dec and March–May; June features our Vic Pratt Golf Tournament; no meetings in Jan, Feb, July, or August) at Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7.\n\n" .
+			"We look forward to welcoming you!\n\n" .
+			"Warm regards,\n" .
+			"General Motors Salaried Retirees Association";
+
+		$user_headers = array(
+			'Content-Type: text/plain; charset=UTF-8',
+			'Reply-To: ' . $primary_admin . ', ' . $fallback_admin,
+		);
+
+		$applicant_sent   = wp_mail( $email, $user_subject, $user_message, $user_headers );
+		$applicant_status = $applicant_sent ? 'sent' : 'failed';
+		update_post_meta( $post_id, '_applicant_email_sent_at', $timestamp );
+		update_post_meta( $post_id, '_applicant_email_status', $applicant_status );
+	}
+
+	return array(
+		'post_id'          => (int) $post_id,
+		'admin_sent'       => (bool) $admin_sent,
+		'admin_status'     => $admin_status,
+		'applicant_sent'   => (bool) $applicant_sent,
+		'applicant_status' => $applicant_status,
+		'sent_at'          => $timestamp,
+	);
+}
+
+/**
+ * Meta Box: Delivery Status & Resend Emails Action in wp-admin
+ */
+function gmsra_register_application_meta_boxes() {
+	add_meta_box(
+		'gmsra_application_delivery_meta_box',
+		__( 'Application Details, Delivery Status & Resend Emails', 'gmsra-bespoke' ),
+		'gmsra_render_application_meta_box',
+		'gmsra_application',
+		'normal',
+		'high'
+	);
+}
+add_action( 'add_meta_boxes', 'gmsra_register_application_meta_boxes' );
+
+function gmsra_render_application_meta_box( $post ) {
+	$admin_status     = get_post_meta( $post->ID, '_admin_email_status', true ) ?: 'not_recorded';
+	$admin_sent_at    = get_post_meta( $post->ID, '_admin_email_sent_at', true ) ?: '—';
+	$applicant_status = get_post_meta( $post->ID, '_applicant_email_status', true ) ?: 'not_recorded';
+	$applicant_sent   = get_post_meta( $post->ID, '_applicant_email_sent_at', true ) ?: '—';
+	$applicant_email  = get_post_meta( $post->ID, '_email', true ) ?: '—';
+
+	if ( isset( $_GET['gmsra_resent'] ) && '1' === $_GET['gmsra_resent'] ) {
+		echo '<div class="notice notice-success inline" style="margin: 0 0 12px 0; padding: 8px 12px;"><p><strong>' . esc_html__( 'Confirmation and Executive Notification emails have been re-triggered.', 'gmsra-bespoke' ) . '</strong></p></div>';
+	}
+
+	echo '<table class="widefat striped" style="margin-bottom: 14px;">';
+	echo '<tbody>';
+	echo '<tr><th style="width: 240px;">' . esc_html__( 'Applicant Email', 'gmsra-bespoke' ) . '</th><td><code>' . esc_html( $applicant_email ) . '</code></td></tr>';
+	echo '<tr><th>' . esc_html__( 'Executive Notification Status (GMSRA + Roy Fallback)', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $admin_status ) ) . '</strong> &mdash; ' . esc_html( $admin_sent_at ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Applicant Confirmation Status', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $applicant_status ) ) . '</strong> &mdash; ' . esc_html( $applicant_sent ) . '</td></tr>';
+	echo '</tbody>';
+	echo '</table>';
+
+	if ( current_user_can( 'edit_posts' ) ) {
+		$resend_url = wp_nonce_url(
+			admin_url( 'admin-post.php?action=gmsra_resend_application_emails&post_id=' . absint( $post->ID ) ),
+			'gmsra_resend_emails_' . absint( $post->ID )
+		);
+		echo '<p><a href="' . esc_url( $resend_url ) . '" class="button button-primary">' . esc_html__( 'Resend Confirmation & Admin Emails', 'gmsra-bespoke' ) . '</a></p>';
+	}
+}
+
+function gmsra_handle_admin_resend_application_emails() {
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_die( esc_html__( 'You do not have permission to perform this action.', 'gmsra-bespoke' ), 403 );
+	}
+
+	$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+	if ( ! $post_id || get_post_type( $post_id ) !== 'gmsra_application' ) {
+		wp_die( esc_html__( 'Invalid application ID.', 'gmsra-bespoke' ), 400 );
+	}
+
+	check_admin_referer( 'gmsra_resend_emails_' . $post_id );
+
+	gmsra_build_and_send_application_emails( $post_id );
+
+	wp_safe_redirect( add_query_arg( 'gmsra_resent', '1', get_edit_post_link( $post_id, 'raw' ) ) );
+	exit;
+}
+add_action( 'admin_post_gmsra_resend_application_emails', 'gmsra_handle_admin_resend_application_emails' );
 
 /**
  * Handle AJAX Membership Form Submission
@@ -226,7 +435,7 @@ function gmsra_handle_membership_submission() {
 	$email       = sanitize_email( $_POST['email'] ?? '' );
 	$retired     = sanitize_text_field( $_POST['date_retired'] ?? '' );
 	$department  = sanitize_text_field( $_POST['department'] ?? '' );
-	$involvement = isset( $_POST['involvement'] ) ? (array)$_POST['involvement'] : array();
+	$involvement = isset( $_POST['involvement'] ) ? (array) $_POST['involvement'] : array();
 	$involvement_clean = array_map( 'sanitize_text_field', $involvement );
 
 	if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) ) {
@@ -257,37 +466,10 @@ function gmsra_handle_membership_submission() {
 		update_post_meta( $post_id, '_date_retired', $retired );
 		update_post_meta( $post_id, '_department', $department );
 		update_post_meta( $post_id, '_involvement', implode( ', ', $involvement_clean ) );
+
+		// Build and send Executive + Applicant emails with automatic fallback to Roy Ward (back.wards@sympatico.ca)
+		gmsra_build_and_send_application_emails( $post_id );
 	}
-
-	// Email notifications to official association inbox
-	$target_emails = array( 'GMSRA@gmsalariedretirees.com' );
-	$subject = "New GMSRA Membership Application: {$first_name} {$last_name}";
-	$message = "A new membership application has been submitted via the website:\n\n" .
-		"Name: {$first_name} {$last_name}\n" .
-		"Spouse/Companion: {$spouse}\n" .
-		"Address: {$address}" . ( $apt ? " Apt {$apt}" : "" ) . ", {$city}, {$province} {$postal_code}\n" .
-		"Phone: {$phone}\n" .
-		"Email: {$email}\n" .
-		"Date Retired: {$retired}\n" .
-		"GM Department: {$department}\n" .
-		"Volunteer Interest: " . implode( ', ', $involvement_clean ) . "\n\n" .
-		"Submitted on: " . current_time( 'mysql' );
-
-	wp_mail( $target_emails, $subject, $message );
-
-	// Confirmation email to applicant
-	$user_subject = "GMSRA Membership Application Received";
-	$user_message = "Hello {$first_name},\n\n" .
-		"Thank you for submitting your membership application for the General Motors Salaried Retirees Association (GMSRA)!\n\n" .
-		"To complete your membership registration, please submit your payment:\n" .
-		"1. By Interac e-Transfer to: bgboddy@yahoo.ca\n" .
-		"2. By Cheque mailed to: GMSRA, P.O. Box 2100, Oshawa, Ontario L1H 7V4\n" .
-		"3. In Person: At our next monthly meeting (2nd Tuesday of each month at 1:00 PM, Sept–Dec and March–May; June features our Vic Pratt Golf Tournament; no meetings in Jan, Feb, July, or August) at Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7.\n\n" .
-		"We look forward to welcoming you!\n\n" .
-		"Warm regards,\n" .
-		"General Motors Salaried Retirees Association";
-
-	wp_mail( $email, $user_subject, $user_message );
 
 	wp_send_json_success(
 		array(
@@ -304,26 +486,50 @@ add_action( 'wp_ajax_nopriv_gmsra_submit_membership', 'gmsra_handle_membership_s
 function gmsra_handle_contact_submission() {
 	check_ajax_referer( 'gmsra_form_nonce', 'nonce' );
 
-	$name    = sanitize_text_field( $_POST['contact_name'] ?? '' );
-	$email   = sanitize_email( $_POST['contact_email'] ?? '' );
+	$name          = sanitize_text_field( $_POST['contact_name'] ?? '' );
+	$email         = sanitize_email( $_POST['contact_email'] ?? '' );
 	$subject_input = sanitize_text_field( $_POST['contact_subject'] ?? 'General Inquiry' );
-	$user_msg = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
+	$user_msg      = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
 
 	if ( empty( $name ) || empty( $email ) || empty( $user_msg ) ) {
 		wp_send_json_error( array( 'message' => __( 'Please fill in your name, email, and message.', 'gmsra-bespoke' ) ) );
 	}
 
-	$target_emails = array( 'GMSRA@gmsalariedretirees.com' );
-	$subject = "GMSRA Website Contact: [{$subject_input}] from {$name}";
-	$body = "New message from website contact form:\n\n" .
+	$timestamp = current_time( 'mysql' );
+
+	// Save inquiry to wp_posts (gmsra_contact CPT) first before calling wp_mail()
+	$contact_post_id = wp_insert_post(
+		array(
+			'post_type'    => 'gmsra_contact',
+			'post_title'   => sprintf( '%s — %s (%s)', $name, $subject_input, current_time( 'Y-m-d' ) ),
+			'post_content' => $user_msg,
+			'post_status'  => 'publish',
+		)
+	);
+
+	if ( $contact_post_id && ! is_wp_error( $contact_post_id ) ) {
+		update_post_meta( $contact_post_id, '_contact_name', $name );
+		update_post_meta( $contact_post_id, '_contact_email', $email );
+		update_post_meta( $contact_post_id, '_contact_subject', $subject_input );
+		update_post_meta( $contact_post_id, '_contact_message', $user_msg );
+		update_post_meta( $contact_post_id, '_submitted_at', $timestamp );
+	}
+
+	$subject  = "GMSRA Website Contact: [{$subject_input}] from {$name}";
+	$body_msg = "New message from website contact form:\n\n" .
 		"Name: {$name}\n" .
 		"Email: {$email}\n" .
 		"Subject: {$subject_input}\n\n" .
 		"Message:\n{$user_msg}\n\n" .
-		"Sent: " . current_time( 'mysql' );
+		"Sent: {$timestamp}";
 
-	$headers = array( 'Reply-To: ' . $name . ' <' . $email . '>' );
-	wp_mail( $target_emails, $subject, $body, $headers );
+	$headers    = array( 'Reply-To: ' . $name . ' <' . $email . '>' );
+	$admin_sent = gmsra_send_admin_mail_with_fallback( $subject, $body_msg, $headers );
+
+	if ( $contact_post_id && ! is_wp_error( $contact_post_id ) ) {
+		update_post_meta( $contact_post_id, '_admin_email_sent_at', $timestamp );
+		update_post_meta( $contact_post_id, '_admin_email_status', $admin_sent ? 'sent' : 'failed' );
+	}
 
 	wp_send_json_success(
 		array(
