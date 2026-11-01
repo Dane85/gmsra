@@ -661,7 +661,38 @@ function gmsra_parse_ics( $ics_content ) {
 					$tz_string = 'America/Toronto';
 				}
 				$now = new DateTime( 'now', new DateTimeZone( $tz_string ) );
-				if ( $current_event['start'] >= ( clone $now )->setTime( 0, 0, 0 ) ) {
+				$today_midnight = ( clone $now )->setTime( 0, 0, 0 );
+
+				// Expand recurring events if RRULE is present
+				if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
+					$orig_start = $current_event['start'];
+					$orig_end   = $current_event['end'];
+					$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
+
+					for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
+						$target_month = ( clone $now )->modify( "+{$m_offset} month" );
+						$y = $target_month->format('Y');
+						$m = $target_month->format('m');
+
+						// Handle 3rd Tuesday (e.g. BYDAY=3TU)
+						$instance_dt = null;
+						if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
+							$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+						} elseif ( stripos( $current_event['rrule'], 'BYDAY=2TU' ) !== false ) {
+							$instance_dt = new DateTime( "second tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+						}
+
+						if ( $instance_dt && $instance_dt >= $today_midnight ) {
+							$expanded = $current_event;
+							$expanded['start'] = $instance_dt;
+							$expanded['end'] = ( clone $instance_dt )->modify( "+{$duration} seconds" );
+							$expanded['uid'] = $current_event['uid'] . "-{$y}-{$m}";
+							$events[] = $expanded;
+						}
+					}
+				} elseif ( $current_event['start'] >= $today_midnight ) {
 					$events[] = $current_event;
 				}
 			}
@@ -677,6 +708,9 @@ function gmsra_parse_ics( $ics_content ) {
 				$val = str_replace( array( '\\,', '\\;', '\\n', '\\N' ), array( ',', ';', "\n", "\n" ), $val );
 
 				$prop = explode( ';', $prop_full )[0];
+				if ( $prop === 'RRULE' ) {
+					$current_event['rrule'] = $val;
+				}
 
 				if ( $prop === 'SUMMARY' ) {
 					$current_event['title'] = $val;
@@ -686,9 +720,6 @@ function gmsra_parse_ics( $ics_content ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'LOCATION' ) {
 					if ( ! empty( $val ) ) {
-						if ( stripos( $val, 'Royal Canadian Legion' ) === false && stripos( $val, 'Legion' ) === false ) {
-							$val = 'Royal Canadian Legion, ' . $val;
-						}
 						$current_event['location'] = $val;
 					}
 				} elseif ( $prop === 'DESCRIPTION' ) {
@@ -787,9 +818,8 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 	}
 
 	$ics_url = get_option( 'gmsra_calendar_ics_url', GMSRA_DEFAULT_CALENDAR_ICS_URL );
-	if ( empty( $ics_url ) || strpos( $ics_url, 'outlook.office365.com' ) !== false ) {
+	if ( empty( $ics_url ) ) {
 		$ics_url = GMSRA_DEFAULT_CALENDAR_ICS_URL;
-		update_option( 'gmsra_calendar_ics_url', GMSRA_DEFAULT_CALENDAR_ICS_URL );
 	}
 
 	if ( ! empty( $ics_url ) ) {
