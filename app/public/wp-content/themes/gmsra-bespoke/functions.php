@@ -653,6 +653,8 @@ function gmsra_parse_ics( $ics_content ) {
 				'location'    => 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7',
 				'description' => '',
 				'uid'         => '',
+				'rrule'       => '',
+				'exdates'     => array(),
 			);
 		} elseif ( $line === 'END:VEVENT' && $current_event ) {
 			if ( $current_event['start'] instanceof DateTime ) {
@@ -663,37 +665,58 @@ function gmsra_parse_ics( $ics_content ) {
 				$now = new DateTime( 'now', new DateTimeZone( $tz_string ) );
 				$today_midnight = ( clone $now )->setTime( 0, 0, 0 );
 
-				// Expand recurring events if RRULE is present
-				if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
-					$orig_start = $current_event['start'];
-					$orig_end   = $current_event['end'];
-					$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
+				// Skip statutory holidays if present in shared personal/association calendar
+				$title_lower = strtolower( trim( $current_event['title'] ) );
+				$is_holiday = in_array( $title_lower, array( 'new years day', 'canada day', 'civic holiday', 'labour day' ), true );
 
-					for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
-						$target_month = ( clone $now )->modify( "+{$m_offset} month" );
-						$y = $target_month->format('Y');
-						$m = $target_month->format('m');
+				if ( ! $is_holiday ) {
+					// Expand recurring events if RRULE is present
+					if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
+						$orig_start = $current_event['start'];
+						$orig_end   = $current_event['end'];
+						$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
 
-						// Handle 3rd Tuesday (e.g. BYDAY=3TU)
-						$instance_dt = null;
-						if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
-							$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
-							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
-						} elseif ( stripos( $current_event['rrule'], 'BYDAY=2TU' ) !== false ) {
-							$instance_dt = new DateTime( "second tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
-							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+						for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
+							$target_month = ( clone $now )->modify( "+{$m_offset} month" );
+							$y = $target_month->format('Y');
+							$m = $target_month->format('m');
+							$m_int = (int)$m;
+
+							// Handle 3rd Tuesday (e.g. BYDAY=3TU)
+							$instance_dt = null;
+							if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
+								$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+								$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+							} elseif ( stripos( $current_event['rrule'], 'BYDAY=2TU' ) !== false ) {
+								$instance_dt = new DateTime( "second tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+								$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+							}
+
+							if ( $instance_dt && $instance_dt >= $today_midnight ) {
+								// Check EXDATE exclusions from Outlook (e.g. 2026-12-15, 2027-01-19, 2027-06-15, 2027-07-20)
+								$inst_date_str = $instance_dt->format( 'Y-m-d' );
+								if ( ! empty( $current_event['exdates'] ) && in_array( $inst_date_str, $current_event['exdates'], true ) ) {
+									continue;
+								}
+
+								// Additional safety: GMSRA Executive explicitly does NOT meet in December, January, June, or July
+								if ( stripos( $current_event['title'], 'Executive' ) !== false && in_array( $m_int, array( 1, 6, 7, 12 ), true ) ) {
+									continue;
+								}
+
+								$expanded = $current_event;
+								$expanded['start'] = $instance_dt;
+								$expanded['end'] = ( clone $instance_dt )->modify( "+{$duration} seconds" );
+								$expanded['uid'] = $current_event['uid'] . "-{$y}-{$m}";
+								$events[] = $expanded;
+							}
 						}
-
-						if ( $instance_dt && $instance_dt >= $today_midnight ) {
-							$expanded = $current_event;
-							$expanded['start'] = $instance_dt;
-							$expanded['end'] = ( clone $instance_dt )->modify( "+{$duration} seconds" );
-							$expanded['uid'] = $current_event['uid'] . "-{$y}-{$m}";
-							$events[] = $expanded;
+					} elseif ( $current_event['start'] >= $today_midnight ) {
+						$base_date_str = $current_event['start']->format( 'Y-m-d' );
+						if ( empty( $current_event['exdates'] ) || ! in_array( $base_date_str, $current_event['exdates'], true ) ) {
+							$events[] = $current_event;
 						}
 					}
-				} elseif ( $current_event['start'] >= $today_midnight ) {
-					$events[] = $current_event;
 				}
 			}
 			$current_event = null;
@@ -710,6 +733,14 @@ function gmsra_parse_ics( $ics_content ) {
 				$prop = explode( ';', $prop_full )[0];
 				if ( $prop === 'RRULE' ) {
 					$current_event['rrule'] = $val;
+				} elseif ( $prop === 'EXDATE' ) {
+					$dates = explode( ',', $val );
+					foreach ( $dates as $d ) {
+						$d = trim( $d );
+						if ( preg_match( '/^(\\d{4})(\\d{2})(\\d{2})/', $d, $dm ) ) {
+							$current_event['exdates'][] = "{$dm[1]}-{$dm[2]}-{$dm[3]}";
+						}
+					}
 				}
 
 				if ( $prop === 'SUMMARY' ) {
@@ -742,6 +773,18 @@ function gmsra_parse_ics( $ics_content ) {
 	usort( $events, function( $a, $b ) {
 		return $a['start']->getTimestamp() - $b['start']->getTimestamp();
 	} );
+
+	// Deduplicate identical events occurring on the same calendar day
+	$deduped = array();
+	$seen_keys = array();
+	foreach ( $events as $ev ) {
+		$key = $ev['start']->format( 'Y-m-d' ) . '_' . strtolower( trim( $ev['title'] ) );
+		if ( ! isset( $seen_keys[ $key ] ) ) {
+			$seen_keys[ $key ] = true;
+			$deduped[] = $ev;
+		}
+	}
+	$events = $deduped;
 
 	return $events;
 }
