@@ -32,12 +32,11 @@
 
 <?php
 $next_event = gmsra_get_next_calendar_event();
-$next_title = $next_event ? $next_event['title'] : 'Monthly Membership Meeting';
-$next_date  = ( $next_event && ( $next_event['start'] instanceof DateTime ) ) ? $next_event['start']->format( 'l, F j, Y \a\t g:i A' ) : gmsra_get_next_meeting_date() . ' at 1:00 PM';
-$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
-if ( ! empty( $next_loc ) && stripos( $next_loc, 'Royal Canadian Legion' ) === false ) {
-	$next_loc = 'Royal Canadian Legion, ' . $next_loc;
-}
+if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
+	$next_title = $next_event['title'];
+	$is_all_day = ! empty( $next_event['is_all_day'] );
+	$next_date  = $is_all_day ? $next_event['start']->format( 'l, F j, Y' ) : $next_event['start']->format( 'l, F j, Y \a\t g:i A' );
+	$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : '';
 ?>
 <!-- Top Notification Bar -->
 <div class="top-notice-bar">
@@ -47,12 +46,15 @@ if ( ! empty( $next_loc ) && stripos( $next_loc, 'Royal Canadian Legion' ) === f
 				<span class="top-notice-badge"><?php esc_html_e( 'Next Gathering', 'gmsra-bespoke' ); ?></span>
 				<span>📅 <strong><?php echo esc_html( $next_title ); ?>:</strong> <?php echo esc_html( $next_date ); ?></span>
 			</div>
-			<div class="top-notice-item">
-				<span>📍 <?php echo esc_html( $next_loc ); ?></span>
-			</div>
+			<?php if ( ! empty( $next_loc ) ) : ?>
+				<div class="top-notice-item">
+					<span>📍 <?php echo esc_html( $next_loc ); ?></span>
+				</div>
+			<?php endif; ?>
 		</div>
 	</div>
 </div>
+<?php endif; ?>
 
 <!-- Main Site Header -->
 <header id="masthead" class="site-header">

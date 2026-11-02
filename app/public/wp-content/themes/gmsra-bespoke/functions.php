@@ -109,11 +109,7 @@ function gmsra_get_next_meeting_date() {
 	if ( $next && ( $next['start'] instanceof DateTime ) ) {
 		return $next['start']->format( 'l, F j, Y' );
 	}
-	$events = gmsra_get_default_upcoming_meetings( 1 );
-	if ( ! empty( $events ) && ( $events[0]['start'] instanceof DateTime ) ) {
-		return $events[0]['start']->format( 'l, F j, Y' );
-	}
-	return '2nd Tuesday of the month';
+	return '';
 }
 
 /**
@@ -624,7 +620,7 @@ function gmsra_parse_ics_date( $date_str ) {
 			return new DateTime( $iso, new DateTimeZone( $tz_string ) );
 		}
 	} elseif ( preg_match( '/^(\d{4})(\d{2})(\d{2})/', $date_str, $m ) ) {
-		return new DateTime( "{$m[1]}-{$m[2]}-{$m[3]} 13:00:00", new DateTimeZone( $tz_string ) );
+		return new DateTime( "{$m[1]}-{$m[2]}-{$m[3]} 00:00:00", new DateTimeZone( $tz_string ) );
 	}
 	return false;
 }
@@ -650,7 +646,8 @@ function gmsra_parse_ics( $ics_content ) {
 				'title'       => 'Upcoming GMSRA Gathering',
 				'start'       => null,
 				'end'         => null,
-				'location'    => 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7',
+				'is_all_day'  => false,
+				'location'    => '',
 				'description' => '',
 				'uid'         => '',
 				'rrule'       => '',
@@ -693,6 +690,14 @@ function gmsra_parse_ics( $ics_content ) {
 							}
 
 							if ( $instance_dt && $instance_dt >= $today_midnight ) {
+								// Check UNTIL in RRULE if present
+								if ( preg_match( '/UNTIL=(\d{8}(?:T\d{6}Z?)?)/i', $current_event['rrule'], $um ) ) {
+									$until_dt = gmsra_parse_ics_date( $um[1] );
+									if ( $until_dt && $instance_dt > $until_dt ) {
+										continue;
+									}
+								}
+
 								// Check EXDATE exclusions from Outlook (e.g. 2026-12-15, 2027-01-19, 2027-06-15, 2027-07-20)
 								$inst_date_str = $instance_dt->format( 'Y-m-d' );
 								if ( ! empty( $current_event['exdates'] ) && in_array( $inst_date_str, $current_event['exdates'], true ) ) {
@@ -746,13 +751,18 @@ function gmsra_parse_ics( $ics_content ) {
 				if ( $prop === 'SUMMARY' ) {
 					$current_event['title'] = $val;
 				} elseif ( $prop === 'DTSTART' ) {
+					if ( strpos( $prop_full, 'VALUE=DATE' ) !== false || preg_match( '/^\d{8}$/', $val ) ) {
+						$current_event['is_all_day'] = true;
+					}
 					$current_event['start'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'DTEND' ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
-				} elseif ( $prop === 'LOCATION' ) {
-					if ( ! empty( $val ) ) {
-						$current_event['location'] = $val;
+				} elseif ( $prop === 'X-MICROSOFT-CDO-ALLDAYEVENT' ) {
+					if ( strtoupper( $val ) === 'TRUE' ) {
+						$current_event['is_all_day'] = true;
 					}
+				} elseif ( $prop === 'LOCATION' ) {
+					$current_event['location'] = $val;
 				} elseif ( $prop === 'DESCRIPTION' ) {
 					$val = wp_strip_all_tags( $val );
 					$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
@@ -831,7 +841,7 @@ function gmsra_get_default_upcoming_meetings( $count = 4 ) {
 				'title'       => 'Monthly Membership Meeting',
 				'start'       => $meeting_dt,
 				'end'         => ( clone $meeting_dt )->setTime( 15, 0, 0 ),
-				'location'    => 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7',
+				'location'    => '',
 				'description' => 'Doors open at 12:00 PM for coffee, treats, and casual socializing. Meeting and guest speaker begins at 1:00 PM.',
 				'uid'         => "gmsra-recurring-{$year}-{$month}",
 			);
@@ -885,9 +895,8 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 		}
 	}
 
-	$default_events = gmsra_get_default_upcoming_meetings( 7 );
-	set_transient( $cache_key, $default_events, 60 );
-	return $default_events;
+	set_transient( $cache_key, array(), 60 );
+	return array();
 }
 
 /**
@@ -905,16 +914,22 @@ function gmsra_add_to_google_calendar_url( $event ) {
 	if ( empty( $event['start'] ) || ! ( $event['start'] instanceof DateTime ) ) {
 		return '#';
 	}
-	$start = ( clone $event['start'] )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Ymd\THis\Z' );
-	$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] )->setTimezone( new DateTimeZone( 'UTC' ) ) : ( clone $event['start'] )->modify( '+2 hours' )->setTimezone( new DateTimeZone( 'UTC' ) );
-	$end = $end_dt->format( 'Ymd\THis\Z' );
+	if ( ! empty( $event['is_all_day'] ) ) {
+		$start = $event['start']->format( 'Ymd' );
+		$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] ) : ( clone $event['start'] )->modify( '+1 day' );
+		$end = $end_dt->format( 'Ymd' );
+	} else {
+		$start = ( clone $event['start'] )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Ymd\THis\Z' );
+		$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] )->setTimezone( new DateTimeZone( 'UTC' ) ) : ( clone $event['start'] )->modify( '+2 hours' )->setTimezone( new DateTimeZone( 'UTC' ) );
+		$end = $end_dt->format( 'Ymd\THis\Z' );
+	}
 
 	$params = array(
 		'action'   => 'TEMPLATE',
 		'text'     => $event['title'],
 		'dates'    => "{$start}/{$end}",
 		'details'  => ! empty( $event['description'] ) ? $event['description'] : 'General Motors Salaried Retirees Association Gathering',
-		'location' => $event['location'],
+		'location' => ! empty( $event['location'] ) ? $event['location'] : '',
 	);
 	return 'https://calendar.google.com/calendar/render?' . http_build_query( $params );
 }
