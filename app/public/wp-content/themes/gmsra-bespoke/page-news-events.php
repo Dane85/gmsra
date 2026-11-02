@@ -62,12 +62,12 @@ get_header(); ?>
 						</p>
 
 						<?php if ( ! empty( $evt['description'] ) ) : ?>
-							<div class="card-desc" style="font-size: 0.95rem; line-height: 1.6; margin-top: 0.75rem;">
+							<div class="card-desc" style="font-size: 0.95rem; line-height: 1.65; margin-top: 0.75rem; margin-bottom: 0.5rem; padding: 0.85rem 1rem; background: rgba(0, 75, 135, 0.04); border-left: 3px solid var(--gmsra-blue); border-radius: 0 8px 8px 0; color: var(--gmsra-text);">
 								<?php echo wp_kses_post( wpautop( $evt['description'] ) ); ?>
 							</div>
 						<?php endif; ?>
 
-						<div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--gmsra-border); display: flex; gap: 0.5rem;">
+						<div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gmsra-border); display: flex; gap: 0.5rem;">
 							<a href="<?php echo esc_url( gmsra_add_to_google_calendar_url( $evt ) ); ?>" target="_blank" rel="noopener" class="btn btn-secondary" style="width: 100%; font-size: 0.88rem; padding: 0.55rem 0.85rem;">
 								+ Add to Calendar
 							</a>

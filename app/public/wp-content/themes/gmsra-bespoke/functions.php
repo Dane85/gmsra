@@ -643,15 +643,17 @@ function gmsra_parse_ics( $ics_content ) {
 
 		if ( $line === 'BEGIN:VEVENT' ) {
 			$current_event = array(
-				'title'       => 'Upcoming GMSRA Gathering',
-				'start'       => null,
-				'end'         => null,
-				'is_all_day'  => false,
-				'location'    => '',
-				'description' => '',
-				'uid'         => '',
-				'rrule'       => '',
-				'exdates'     => array(),
+				'title'         => 'Upcoming GMSRA Gathering',
+				'start'         => null,
+				'end'           => null,
+				'is_all_day'    => false,
+				'location'      => '',
+				'description'   => '',
+				'uid'           => '',
+				'base_uid'      => '',
+				'recurrence_id' => null,
+				'rrule'         => '',
+				'exdates'       => array(),
 			);
 		} elseif ( $line === 'END:VEVENT' && $current_event ) {
 			if ( $current_event['start'] instanceof DateTime ) {
@@ -778,6 +780,9 @@ function gmsra_parse_ics( $ics_content ) {
 					}
 				} elseif ( $prop === 'UID' ) {
 					$current_event['uid'] = $val;
+					$current_event['base_uid'] = $val;
+				} elseif ( $prop === 'RECURRENCE-ID' ) {
+					$current_event['recurrence_id'] = gmsra_parse_ics_date( $val );
 				}
 			}
 		}
@@ -787,17 +792,36 @@ function gmsra_parse_ics( $ics_content ) {
 		return $a['start']->getTimestamp() - $b['start']->getTimestamp();
 	} );
 
-	// Deduplicate identical events occurring on the same calendar day
-	$deduped = array();
-	$seen_keys = array();
+	// Deduplicate identical events occurring on the same calendar day,
+	// merging RECURRENCE-ID override instances so event descriptions and updated details are always preserved.
+	$deduped_map = array();
 	foreach ( $events as $ev ) {
-		$key = $ev['start']->format( 'Y-m-d' ) . '_' . strtolower( trim( $ev['title'] ) );
-		if ( ! isset( $seen_keys[ $key ] ) ) {
-			$seen_keys[ $key ] = true;
-			$deduped[] = $ev;
+		$date_str = $ev['start']->format( 'Y-m-d' );
+		$key = $date_str . '_' . strtolower( trim( $ev['title'] ) );
+		if ( ! isset( $deduped_map[ $key ] ) ) {
+			$deduped_map[ $key ] = $ev;
+		} else {
+			$existing = $deduped_map[ $key ];
+			$is_override = ( ! empty( $ev['recurrence_id'] ) );
+			if ( ! empty( $ev['description'] ) && ( empty( $existing['description'] ) || strlen( $ev['description'] ) > strlen( $existing['description'] ) || $is_override ) ) {
+				$existing['description'] = $ev['description'];
+			}
+			if ( ! empty( $ev['location'] ) && ( empty( $existing['location'] ) || $is_override ) ) {
+				$existing['location'] = $ev['location'];
+			}
+			if ( $is_override ) {
+				$existing['start'] = $ev['start'];
+				if ( ! empty( $ev['end'] ) ) {
+					$existing['end'] = $ev['end'];
+				}
+				if ( ! empty( $ev['title'] ) ) {
+					$existing['title'] = $ev['title'];
+				}
+			}
+			$deduped_map[ $key ] = $existing;
 		}
 	}
-	$events = $deduped;
+	$events = array_values( $deduped_map );
 
 	return $events;
 }
