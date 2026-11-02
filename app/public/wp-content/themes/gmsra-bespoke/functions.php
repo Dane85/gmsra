@@ -666,7 +666,10 @@ function gmsra_parse_ics( $ics_content ) {
 				$title_lower = strtolower( trim( $current_event['title'] ) );
 				$is_holiday = in_array( $title_lower, array( 'new years day', 'canada day', 'civic holiday', 'labour day' ), true );
 
-				if ( ! $is_holiday ) {
+				// Executive meetings are internal board meetings and should not appear on the public website
+				$is_executive = ( stripos( $title_lower, 'executive' ) !== false );
+
+				if ( ! $is_holiday && ! $is_executive ) {
 					// Expand recurring events if RRULE is present
 					if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
 						$orig_start = $current_event['start'];
