@@ -58,11 +58,6 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 					All Events &rarr;
 				</a>
 			</div>
-			<?php if ( ! empty( $next_event['description'] ) ) : ?>
-				<div class="meeting-banner-desc" style="width: 100%; margin-top: 0.5rem; padding: 1rem 1.25rem; background: rgba(0, 75, 135, 0.04); border-left: 4px solid var(--gmsra-blue); border-radius: 0 8px 8px 0; font-size: 0.95rem; line-height: 1.65; color: var(--gmsra-text);">
-					<?php echo wp_kses_post( wpautop( $next_event['description'] ) ); ?>
-				</div>
-			<?php endif; ?>
 		</div>
 	</div>
 </div>
