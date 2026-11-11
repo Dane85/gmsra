@@ -306,8 +306,9 @@ function gmsra_build_and_send_application_emails( $post_id ) {
 		"Submitted on: {$timestamp}";
 
 	$admin_headers = array();
-	if ( ! empty( $email ) ) {
-		$admin_headers[] = 'Reply-To: ' . trim( $first_name . ' ' . $last_name ) . ' <' . $email . '>';
+	if ( ! empty( $email ) && is_email( $email ) ) {
+		$safe_name       = str_replace( array( '"', "\r", "\n" ), '', trim( $first_name . ' ' . $last_name ) );
+		$admin_headers[] = 'Reply-To: "' . $safe_name . '" <' . $email . '>';
 	}
 
 	$admin_sent   = gmsra_send_admin_mail_with_fallback( $subject, $message, $admin_headers );
@@ -367,24 +368,60 @@ function gmsra_register_application_meta_boxes() {
 		'normal',
 		'high'
 	);
+
+	add_meta_box(
+		'gmsra_contact_details_meta_box',
+		__( 'Contact Inquiry Details & Delivery Status', 'gmsra-bespoke' ),
+		'gmsra_render_contact_meta_box',
+		'gmsra_contact',
+		'normal',
+		'high'
+	);
 }
 add_action( 'add_meta_boxes', 'gmsra_register_application_meta_boxes' );
 
 function gmsra_render_application_meta_box( $post ) {
+	$first_name       = get_post_meta( $post->ID, '_first_name', true ) ?: '—';
+	$last_name        = get_post_meta( $post->ID, '_last_name', true ) ?: '—';
+	$spouse           = get_post_meta( $post->ID, '_spouse', true ) ?: '—';
+	$address          = get_post_meta( $post->ID, '_address', true ) ?: '—';
+	$apt              = get_post_meta( $post->ID, '_apt', true ) ?: '—';
+	$city             = get_post_meta( $post->ID, '_city', true ) ?: '—';
+	$province         = get_post_meta( $post->ID, '_province', true ) ?: '—';
+	$postal_code      = get_post_meta( $post->ID, '_postal_code', true ) ?: '—';
+	$phone            = get_post_meta( $post->ID, '_phone', true ) ?: '—';
+	$applicant_email  = get_post_meta( $post->ID, '_email', true ) ?: '—';
+	$date_retired     = get_post_meta( $post->ID, '_date_retired', true ) ?: '—';
+	$department       = get_post_meta( $post->ID, '_department', true ) ?: '—';
+	$involvement      = get_post_meta( $post->ID, '_involvement', true ) ?: '—';
 	$admin_status     = get_post_meta( $post->ID, '_admin_email_status', true ) ?: 'not_recorded';
 	$admin_sent_at    = get_post_meta( $post->ID, '_admin_email_sent_at', true ) ?: '—';
 	$applicant_status = get_post_meta( $post->ID, '_applicant_email_status', true ) ?: 'not_recorded';
 	$applicant_sent   = get_post_meta( $post->ID, '_applicant_email_sent_at', true ) ?: '—';
-	$applicant_email  = get_post_meta( $post->ID, '_email', true ) ?: '—';
 
 	if ( isset( $_GET['gmsra_resent'] ) && '1' === $_GET['gmsra_resent'] ) {
 		echo '<div class="notice notice-success inline" style="margin: 0 0 12px 0; padding: 8px 12px;"><p><strong>' . esc_html__( 'Confirmation and Executive Notification emails have been re-triggered.', 'gmsra-bespoke' ) . '</strong></p></div>';
 	}
 
+	echo '<h4 style="margin: 0 0 8px 0;">' . esc_html__( 'Submitted Member Information', 'gmsra-bespoke' ) . '</h4>';
+	echo '<table class="widefat striped" style="margin-bottom: 18px;">';
+	echo '<tbody>';
+	echo '<tr><th style="width: 240px;">' . esc_html__( 'Applicant Name', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( trim( $first_name . ' ' . $last_name ) ) . '</strong></td></tr>';
+	echo '<tr><th>' . esc_html__( 'Spouse / Companion', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $spouse ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Street Address', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $address ) . ( '—' !== $apt ? ' (Apt/Suite: ' . esc_html( $apt ) . ')' : '' ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'City / Province / Postal Code', 'gmsra-bespoke' ) . '</th><td>' . esc_html( "{$city}, {$province} {$postal_code}" ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Phone Number', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $phone ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Email Address', 'gmsra-bespoke' ) . '</th><td><code>' . esc_html( $applicant_email ) . '</code></td></tr>';
+	echo '<tr><th>' . esc_html__( 'Date Retired from GM', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $date_retired ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'GM Department / Division', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $department ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Volunteer Interests', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $involvement ) . '</td></tr>';
+	echo '</tbody>';
+	echo '</table>';
+
+	echo '<h4 style="margin: 0 0 8px 0;">' . esc_html__( 'Email Delivery Audit', 'gmsra-bespoke' ) . '</h4>';
 	echo '<table class="widefat striped" style="margin-bottom: 14px;">';
 	echo '<tbody>';
-	echo '<tr><th style="width: 240px;">' . esc_html__( 'Applicant Email', 'gmsra-bespoke' ) . '</th><td><code>' . esc_html( $applicant_email ) . '</code></td></tr>';
-	echo '<tr><th>' . esc_html__( 'Executive Notification Status (GMSRA + Roy Fallback)', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $admin_status ) ) . '</strong> &mdash; ' . esc_html( $admin_sent_at ) . '</td></tr>';
+	echo '<tr><th style="width: 240px;">' . esc_html__( 'Executive Notification Status (GMSRA + Roy Fallback)', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $admin_status ) ) . '</strong> &mdash; ' . esc_html( $admin_sent_at ) . '</td></tr>';
 	echo '<tr><th>' . esc_html__( 'Applicant Confirmation Status', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $applicant_status ) ) . '</strong> &mdash; ' . esc_html( $applicant_sent ) . '</td></tr>';
 	echo '</tbody>';
 	echo '</table>';
@@ -396,6 +433,25 @@ function gmsra_render_application_meta_box( $post ) {
 		);
 		echo '<p><a href="' . esc_url( $resend_url ) . '" class="button button-primary">' . esc_html__( 'Resend Confirmation & Admin Emails', 'gmsra-bespoke' ) . '</a></p>';
 	}
+}
+
+function gmsra_render_contact_meta_box( $post ) {
+	$contact_name    = get_post_meta( $post->ID, '_contact_name', true ) ?: '—';
+	$contact_email   = get_post_meta( $post->ID, '_contact_email', true ) ?: '—';
+	$contact_subject = get_post_meta( $post->ID, '_contact_subject', true ) ?: '—';
+	$submitted_at    = get_post_meta( $post->ID, '_submitted_at', true ) ?: '—';
+	$admin_status    = get_post_meta( $post->ID, '_admin_email_status', true ) ?: 'not_recorded';
+	$admin_sent_at   = get_post_meta( $post->ID, '_admin_email_sent_at', true ) ?: '—';
+
+	echo '<table class="widefat striped">';
+	echo '<tbody>';
+	echo '<tr><th style="width: 240px;">' . esc_html__( 'Sender Name', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( $contact_name ) . '</strong></td></tr>';
+	echo '<tr><th>' . esc_html__( 'Sender Email', 'gmsra-bespoke' ) . '</th><td><code>' . esc_html( $contact_email ) . '</code></td></tr>';
+	echo '<tr><th>' . esc_html__( 'Inquiry Topic', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $contact_subject ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Submitted On', 'gmsra-bespoke' ) . '</th><td>' . esc_html( $submitted_at ) . '</td></tr>';
+	echo '<tr><th>' . esc_html__( 'Executive Notification Status', 'gmsra-bespoke' ) . '</th><td><strong>' . esc_html( strtoupper( $admin_status ) ) . '</strong> &mdash; ' . esc_html( $admin_sent_at ) . '</td></tr>';
+	echo '</tbody>';
+	echo '</table>';
 }
 
 function gmsra_handle_admin_resend_application_emails() {
@@ -418,10 +474,38 @@ function gmsra_handle_admin_resend_application_emails() {
 add_action( 'admin_post_gmsra_resend_application_emails', 'gmsra_handle_admin_resend_application_emails' );
 
 /**
+ * Helper: Check Honeypot & IP Rate Limit for Public AJAX Forms
+ */
+function gmsra_verify_public_form_submission( $form_type = 'form' ) {
+	// 1. Honeypot check: bots fill hidden fields
+	if ( ! empty( $_POST['website_url'] ) ) {
+		wp_send_json_success(
+			array(
+				'message' => __( 'Thank you! Your submission has been received.', 'gmsra-bespoke' ),
+			)
+		);
+	}
+
+	// 2. Lightweight IP Rate Limiting (max 5 submissions per 10 minutes per IP)
+	$ip        = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+	$rate_key  = 'gmsra_rl_' . md5( $form_type . '_' . $ip );
+	$attempts  = (int) get_transient( $rate_key );
+	if ( $attempts >= 5 ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Too many submissions in a short period. Please wait a few minutes and try again, or email GMSRA@gmsalariedretirees.com directly.', 'gmsra-bespoke' ),
+			)
+		);
+	}
+	set_transient( $rate_key, $attempts + 1, 10 * MINUTE_IN_SECONDS );
+}
+
+/**
  * Handle AJAX Membership Form Submission
  */
 function gmsra_handle_membership_submission() {
 	check_ajax_referer( 'gmsra_form_nonce', 'nonce' );
+	gmsra_verify_public_form_submission( 'membership' );
 
 	$first_name  = sanitize_text_field( $_POST['first_name'] ?? '' );
 	$last_name   = sanitize_text_field( $_POST['last_name'] ?? '' );
@@ -432,14 +516,19 @@ function gmsra_handle_membership_submission() {
 	$province    = sanitize_text_field( $_POST['province'] ?? '' );
 	$postal_code = sanitize_text_field( $_POST['postal_code'] ?? '' );
 	$phone       = sanitize_text_field( $_POST['phone'] ?? '' );
-	$email       = sanitize_email( $_POST['email'] ?? '' );
+	$raw_email   = trim( sanitize_text_field( $_POST['email'] ?? '' ) );
+	$email       = sanitize_email( $raw_email );
 	$retired     = sanitize_text_field( $_POST['date_retired'] ?? '' );
 	$department  = sanitize_text_field( $_POST['department'] ?? '' );
 	$involvement = isset( $_POST['involvement'] ) ? (array) $_POST['involvement'] : array();
 	$involvement_clean = array_map( 'sanitize_text_field', $involvement );
 
-	if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) ) {
-		wp_send_json_error( array( 'message' => __( 'Please fill in all required fields (First Name, Last Name, Email).', 'gmsra-bespoke' ) ) );
+	if ( empty( $first_name ) || empty( $last_name ) || empty( $address ) || empty( $city ) || empty( $province ) || empty( $postal_code ) || empty( $phone ) || empty( $raw_email ) ) {
+		wp_send_json_error( array( 'message' => __( 'Please fill in all required fields (First Name, Last Name, Street Address, City, Province, Postal Code, Phone, and Email).', 'gmsra-bespoke' ) ) );
+	}
+
+	if ( empty( $email ) || ! is_email( $email ) ) {
+		wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'gmsra-bespoke' ) ) );
 	}
 
 	// Save to DB
@@ -485,14 +574,20 @@ add_action( 'wp_ajax_nopriv_gmsra_submit_membership', 'gmsra_handle_membership_s
  */
 function gmsra_handle_contact_submission() {
 	check_ajax_referer( 'gmsra_form_nonce', 'nonce' );
+	gmsra_verify_public_form_submission( 'contact' );
 
 	$name          = sanitize_text_field( $_POST['contact_name'] ?? '' );
-	$email         = sanitize_email( $_POST['contact_email'] ?? '' );
+	$raw_email     = trim( sanitize_text_field( $_POST['contact_email'] ?? '' ) );
+	$email         = sanitize_email( $raw_email );
 	$subject_input = sanitize_text_field( $_POST['contact_subject'] ?? 'General Inquiry' );
 	$user_msg      = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
 
-	if ( empty( $name ) || empty( $email ) || empty( $user_msg ) ) {
+	if ( empty( $name ) || empty( $raw_email ) || empty( $user_msg ) ) {
 		wp_send_json_error( array( 'message' => __( 'Please fill in your name, email, and message.', 'gmsra-bespoke' ) ) );
+	}
+
+	if ( empty( $email ) || ! is_email( $email ) ) {
+		wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'gmsra-bespoke' ) ) );
 	}
 
 	$timestamp = current_time( 'mysql' );
@@ -523,7 +618,8 @@ function gmsra_handle_contact_submission() {
 		"Message:\n{$user_msg}\n\n" .
 		"Sent: {$timestamp}";
 
-	$headers    = array( 'Reply-To: ' . $name . ' <' . $email . '>' );
+	$safe_name  = str_replace( array( '"', "\r", "\n" ), '', $name );
+	$headers    = array( 'Reply-To: "' . $safe_name . '" <' . $email . '>' );
 	$admin_sent = gmsra_send_admin_mail_with_fallback( $subject, $body_msg, $headers );
 
 	if ( $contact_post_id && ! is_wp_error( $contact_post_id ) ) {
@@ -630,6 +726,41 @@ function gmsra_parse_ics_date( $date_str ) {
 }
 
 /**
+ * Clean HTML & iCal description text while preserving line breaks, paragraphs, and word spacing
+ */
+function gmsra_clean_ics_description( $val ) {
+	if ( empty( $val ) ) {
+		return '';
+	}
+	// Preserve line breaks from HTML <br> and block-closing tags before stripping HTML
+	$val = preg_replace( '#<br\s*/?>#i', "\n", $val );
+	$val = preg_replace( '#</(p|div|li|h[1-6])>\s*#i', "\n\n", $val );
+	// Ensure closing inline tags like </sup> followed immediately by a word get a space if needed (e.g., 13<sup>th</sup>General -> 13th General)
+	$val = preg_replace( '#</sup>(?=[A-Za-z])#i', '</sup> ', $val );
+	$val = wp_strip_all_tags( $val );
+	$val = html_entity_decode( $val, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
+	// Collapse excessive horizontal whitespace while preserving intentional newlines
+	$val = preg_replace( '/[ \t]+/', ' ', $val );
+	$val = preg_replace( "/\n{3,}/", "\n\n", $val );
+	return trim( $val );
+}
+
+/**
+ * Helper: Format event location consistently (only prepend Royal Canadian Legion for 471 Simcoe St when not already present)
+ */
+function gmsra_format_event_location( $location ) {
+	$location = trim( (string) $location );
+	if ( empty( $location ) ) {
+		return 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
+	}
+	if ( stripos( $location, '471 Simcoe' ) !== false && stripos( $location, 'Legion' ) === false ) {
+		return 'Royal Canadian Legion, ' . $location;
+	}
+	return $location;
+}
+
+/**
  * Parse ICS feed content into structured upcoming events
  */
 function gmsra_parse_ics( $ics_content ) {
@@ -668,13 +799,14 @@ function gmsra_parse_ics( $ics_content ) {
 					$orig_start = $current_event['start'];
 					$orig_end   = $current_event['end'];
 					$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
+					$first_of_this_month = ( clone $now )->modify( 'first day of this month' )->setTime( 0, 0, 0 );
 
 					for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
-						$target_month = ( clone $now )->modify( "+{$m_offset} month" );
+						$target_month = ( clone $first_of_this_month )->modify( "+{$m_offset} month" );
 						$y = $target_month->format('Y');
 						$m = $target_month->format('m');
 
-						// Handle 3rd Tuesday (e.g. BYDAY=3TU)
+						// Handle 3rd Tuesday (e.g. BYDAY=3TU) or 2nd Tuesday (BYDAY=2TU)
 						$instance_dt = null;
 						if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
 							$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
@@ -720,17 +852,13 @@ function gmsra_parse_ics( $ics_content ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'LOCATION' ) {
 					if ( ! empty( $val ) ) {
-						$current_event['location'] = $val;
+						$current_event['location'] = gmsra_format_event_location( $val );
 					}
 				} elseif ( $prop === 'DESCRIPTION' ) {
-					$val = wp_strip_all_tags( $val );
-					$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
-					$current_event['description'] = trim( $val );
+					$current_event['description'] = gmsra_clean_ics_description( $val );
 				} elseif ( $prop === 'X-ALT-DESC' ) {
 					if ( empty( $current_event['description'] ) ) {
-						$val = wp_strip_all_tags( $val );
-						$val = str_replace( array( '&nbsp;', "\xC2\xA0", "\xEF\xBF\xBD" ), ' ', $val );
-						$current_event['description'] = trim( $val );
+						$current_event['description'] = gmsra_clean_ics_description( $val );
 					}
 				} elseif ( $prop === 'UID' ) {
 					$current_event['uid'] = $val;
@@ -754,10 +882,11 @@ function gmsra_get_default_upcoming_meetings( $count = 4 ) {
 	$events = array();
 	$now = new DateTime( 'now', new DateTimeZone( wp_timezone_string() ) );
 	$loop_dt = ( clone $now )->setTime( 0, 0, 0 );
+	$first_of_this_month = ( clone $now )->modify( 'first day of this month' )->setTime( 0, 0, 0 );
 
 	// Search forward up to 24 months to collect upcoming active gatherings
 	for ( $i = 0; $i < 24 && count( $events ) < $count; $i++ ) {
-		$target_month = ( clone $now )->modify( "+{$i} month" );
+		$target_month = ( clone $first_of_this_month )->modify( "+{$i} month" );
 		$year = (int)$target_month->format('Y');
 		$month = (int)$target_month->format('n'); // 1 to 12
 
@@ -799,20 +928,27 @@ function gmsra_get_default_upcoming_meetings( $count = 4 ) {
 }
 
 /**
- * Fetch calendar events with caching
+ * Fetch calendar events with in-memory request caching and transient caching
  */
 function gmsra_get_calendar_events( $force_refresh = false ) {
-	$cache_key = 'gmsra_calendar_events_cache';
-	$is_local = isset( $_SERVER['HTTP_HOST'] ) && ( strpos( $_SERVER['HTTP_HOST'], '.local' ) !== false || strpos( $_SERVER['HTTP_HOST'], 'localhost' ) !== false );
+	static $request_events = null;
 
-	// On local environment, logged-in admin, or if refresh query param is set, bypass cache entirely
-	if ( $force_refresh || isset( $_GET['refresh_calendar'] ) || isset( $_GET['gmsra_refresh_calendar'] ) || is_user_logged_in() || $is_local ) {
-		$force_refresh = true;
+	$cache_key = 'gmsra_calendar_events_cache';
+
+	// Only force-bypass cache if an explicit refresh query parameter is requested
+	if ( $force_refresh || isset( $_GET['refresh_calendar'] ) || isset( $_GET['gmsra_refresh_calendar'] ) ) {
+		$force_refresh  = true;
+		$request_events = null;
+	}
+
+	if ( ! $force_refresh && null !== $request_events ) {
+		return $request_events;
 	}
 
 	if ( ! $force_refresh ) {
 		$cached = get_transient( $cache_key );
 		if ( false !== $cached && is_array( $cached ) && ! empty( $cached ) ) {
+			$request_events = $cached;
 			return $cached;
 		}
 	}
@@ -822,11 +958,13 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 		$ics_url = GMSRA_DEFAULT_CALENDAR_ICS_URL;
 	}
 
+	$ttl = 15 * MINUTE_IN_SECONDS;
+
 	if ( ! empty( $ics_url ) ) {
 		$clean_url = preg_replace( '/^webcal:\/\//i', 'https://', trim( $ics_url ) );
 		$clean_url = preg_replace( '/\/calendar\.html$/i', '/calendar.ics', $clean_url );
 		$response  = wp_remote_get( $clean_url, array(
-			'timeout'    => 10,
+			'timeout'    => 8,
 			'sslverify'  => true,
 			'user-agent' => 'Mozilla/5.0 (compatible; GMSRA-Calendar-Sync/1.0)',
 		) );
@@ -835,15 +973,16 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 			$body = wp_remote_retrieve_body( $response );
 			$events = gmsra_parse_ics( $body );
 			if ( ! empty( $events ) ) {
-				// Cache for 60 seconds on production
-				set_transient( $cache_key, $events, 60 );
+				set_transient( $cache_key, $events, $ttl );
+				$request_events = $events;
 				return $events;
 			}
 		}
 	}
 
 	$default_events = gmsra_get_default_upcoming_meetings( 7 );
-	set_transient( $cache_key, $default_events, 60 );
+	set_transient( $cache_key, $default_events, $ttl );
+	$request_events = $default_events;
 	return $default_events;
 }
 
@@ -877,8 +1016,32 @@ function gmsra_add_to_google_calendar_url( $event ) {
 }
 
 /**
+ * Helper: Check whether a navigation menu item matches the current request
+ */
+function gmsra_is_menu_item_current( $item ) {
+	if ( empty( $item->url ) ) {
+		return false;
+	}
+	$rel_item_path = trim( (string) wp_parse_url( gmsra_make_url_relative( $item->url ), PHP_URL_PATH ), '/' );
+	$req_uri       = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) : '';
+	$rel_req_path  = trim( $req_uri, '/' );
+
+	if ( '' === $rel_item_path && ( is_front_page() || '' === $rel_req_path ) ) {
+		return true;
+	}
+	if ( '' !== $rel_item_path && $rel_item_path === $rel_req_path ) {
+		return true;
+	}
+	if ( 'news-events' === $rel_item_path && ( is_singular( 'post' ) || is_home() || is_category() || is_tag() || is_date() ) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Filter all navigation menu objects, attributes, and rendered HTML
- * to ensure all internal links are root-relative and never reference gmsra.local.
+ * to ensure all internal links are root-relative, active states highlight properly,
+ * and links never reference gmsra.local.
  */
 add_filter( 'wp_nav_menu_objects', function( $items ) {
 	if ( ! empty( $items ) && is_array( $items ) ) {
@@ -886,17 +1049,29 @@ add_filter( 'wp_nav_menu_objects', function( $items ) {
 			if ( ! empty( $item->url ) ) {
 				$item->url = gmsra_make_url_relative( $item->url );
 			}
+			if ( gmsra_is_menu_item_current( $item ) ) {
+				if ( ! is_array( $item->classes ) ) {
+					$item->classes = array();
+				}
+				if ( ! in_array( 'current-menu-item', $item->classes, true ) ) {
+					$item->classes[] = 'current-menu-item';
+				}
+			}
 		}
 	}
 	return $items;
 }, 999 );
 
-add_filter( 'nav_menu_link_attributes', function( $atts ) {
+add_filter( 'nav_menu_link_attributes', function( $atts, $item ) {
 	if ( ! empty( $atts['href'] ) ) {
 		$atts['href'] = gmsra_make_url_relative( $atts['href'] );
 	}
+	if ( isset( $item ) && gmsra_is_menu_item_current( $item ) ) {
+		$atts['class']        = trim( ( $atts['class'] ?? '' ) . ' nav-link active' );
+		$atts['aria-current'] = 'page';
+	}
 	return $atts;
-}, 999 );
+}, 999, 2 );
 
 add_filter( 'walker_nav_menu_start_el', function( $item_output ) {
 	return preg_replace_callback( '#href="([^"]+)"#i', function( $matches ) {
@@ -966,6 +1141,37 @@ function gmsra_site_icon_url( $url ) {
 	return $url;
 }
 add_filter( 'get_site_icon_url', 'gmsra_site_icon_url' );
+
+/**
+ * One-time self-healing database cleanup:
+ * - Unpublish default WordPress "Sample Page" if still public
+ * - Replace default dev-email@wpengine.local with GMSRA@gmsalariedretirees.com
+ * - Flush stale calendar transient so cleaned description spacing takes effect immediately
+ */
+function gmsra_self_heal_database_defaults() {
+	if ( get_option( 'gmsra_audit_fixes_v1' ) === '1' ) {
+		return;
+	}
+
+	if ( get_option( 'admin_email' ) === 'dev-email@wpengine.local' ) {
+		update_option( 'admin_email', 'GMSRA@gmsalariedretirees.com' );
+	}
+
+	$sample_page = get_page_by_path( 'sample-page', OBJECT, 'page' );
+	if ( $sample_page && 'publish' === $sample_page->post_status ) {
+		wp_update_post(
+			array(
+				'ID'          => $sample_page->ID,
+				'post_status' => 'draft',
+			)
+		);
+	}
+
+	delete_transient( 'gmsra_calendar_events_cache' );
+	update_option( 'gmsra_audit_fixes_v1', '1', true );
+}
+add_action( 'init', 'gmsra_self_heal_database_defaults', 20 );
+
 
 
 

@@ -52,11 +52,18 @@
       }
     });
 
+    // Reset mobile nav state if viewport is resized to desktop width
+    $(window).on('resize', function() {
+      if ($(window).width() > 1060 && $nav.hasClass('active')) {
+        closeMobileNav();
+      }
+    });
+
     // Close on Escape key
     $(document).on('keydown', function(e) {
       if (e.key === 'Escape' && $nav.hasClass('active')) {
         closeMobileNav();
-        $toggle.focus();
+        $toggle.trigger('focus');
       }
     });
 
@@ -194,23 +201,24 @@
       });
     });
 
-    // Accessible & Interactive Lightbox for Photo Gallery
-    const $galleryItems = $('.gallery-item');
-    if ($galleryItems.length > 0) {
+    // Accessible & Interactive Lightbox for Photo Galleries (scoped per .gallery-grid)
+    const $allGalleryItems = $('.gallery-item');
+    if ($allGalleryItems.length > 0) {
+      let $activeGalleryItems = $allGalleryItems;
       let currentIndex = 0;
 
       // Build accessible modal
       const modalHtml = `
         <div id="gmsra-lightbox" class="gmsra-lightbox" role="dialog" aria-modal="true" aria-label="Photo Lightbox">
           <div class="lightbox-topbar">
-            <span class="lightbox-counter">Photo 1 of ${$galleryItems.length}</span>
-            <button class="lightbox-close-btn" aria-label="Close photo gallery">&times; Close</button>
+            <span class="lightbox-counter">Photo 1 of ${$allGalleryItems.length}</span>
+            <button type="button" class="lightbox-close-btn" aria-label="Close photo gallery">&times; Close</button>
           </div>
-          <button class="lightbox-nav-btn lightbox-prev" aria-label="Previous photo">&#10094;</button>
+          <button type="button" class="lightbox-nav-btn lightbox-prev" aria-label="Previous photo">&#10094;</button>
           <div class="lightbox-stage">
             <img class="lightbox-img" src="" alt="Enlarged GMSRA Photo">
           </div>
-          <button class="lightbox-nav-btn lightbox-next" aria-label="Next photo">&#10095;</button>
+          <button type="button" class="lightbox-nav-btn lightbox-next" aria-label="Next photo">&#10095;</button>
         </div>
       `;
       $('body').append(modalHtml);
@@ -218,6 +226,7 @@
       const $lightbox = $('#gmsra-lightbox');
       const $lightboxImg = $lightbox.find('.lightbox-img');
       const $lightboxCounter = $lightbox.find('.lightbox-counter');
+      const $lightboxCloseBtn = $lightbox.find('.lightbox-close-btn');
 
       function cleanUrl(url) {
         if (!url) return '';
@@ -225,54 +234,66 @@
       }
 
       function showPhoto(index) {
+        const total = $activeGalleryItems.length;
+        if (total === 0) return;
+
         if (index < 0) {
-          index = $galleryItems.length - 1;
-        } else if (index >= $galleryItems.length) {
+          index = total - 1;
+        } else if (index >= total) {
           index = 0;
         }
         currentIndex = index;
 
-        const $currentItem = $galleryItems.eq(currentIndex);
+        const $currentItem = $activeGalleryItems.eq(currentIndex);
         let targetSrc = $currentItem.attr('data-full') || $currentItem.find('img').attr('src');
         targetSrc = cleanUrl(targetSrc);
 
-        $lightboxImg.css('opacity', 0.4);
-        $lightboxImg.attr('src', targetSrc).on('load', function() {
+        $lightboxImg.off('load').css('opacity', 0.4).one('load', function() {
           $(this).css('opacity', 1);
-        });
-        // In case cached
+        }).attr('src', targetSrc);
+
+        // In case already cached
         if ($lightboxImg[0] && $lightboxImg[0].complete) {
           $lightboxImg.css('opacity', 1);
         }
 
-        $lightboxCounter.text(`Photo ${currentIndex + 1} of ${$galleryItems.length}`);
+        $lightboxCounter.text(`Photo ${currentIndex + 1} of ${total}`);
       }
 
-      function openLightbox(index) {
-        showPhoto(index);
-        $lightbox.addClass('active').hide().fadeIn(200);
+      function openLightbox($clickedItem) {
+        const $parentGrid = $clickedItem.closest('.gallery-grid');
+        $activeGalleryItems = $parentGrid.length ? $parentGrid.find('.gallery-item') : $allGalleryItems;
+        const idx = $activeGalleryItems.index($clickedItem);
+
+        showPhoto(idx >= 0 ? idx : 0);
+        $lightbox.addClass('active').hide().fadeIn(200, function() {
+          $lightboxCloseBtn.trigger('focus');
+        });
         $('body').css('overflow', 'hidden');
       }
 
       function closeLightbox() {
+        const $itemToFocus = $activeGalleryItems.eq(currentIndex);
         $lightbox.fadeOut(200, function() {
           $lightbox.removeClass('active');
           $('body').css('overflow', '');
-          $lightboxImg.attr('src', '');
+          $lightboxImg.off('load').attr('src', '');
+          if ($itemToFocus.length) {
+            $itemToFocus.trigger('focus');
+          }
         });
       }
 
       // Click & Keyboard on gallery items
-      $galleryItems.on('click', function() {
-        const idx = $galleryItems.index(this);
-        openLightbox(idx);
+      $allGalleryItems.on('click', function() {
+        openLightbox($(this));
       });
 
-      $galleryItems.on('keydown', function(e) {
+      $allGalleryItems.on('keydown', function(e) {
+        if ($lightbox.hasClass('active')) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          const idx = $galleryItems.index(this);
-          openLightbox(idx);
+          openLightbox($(this));
         }
       });
 
@@ -287,7 +308,7 @@
         showPhoto(currentIndex + 1);
       });
 
-      $lightbox.find('.lightbox-close-btn').on('click', function(e) {
+      $lightboxCloseBtn.on('click', function(e) {
         e.stopPropagation();
         closeLightbox();
       });
@@ -332,6 +353,7 @@
         }
       });
     }
+
     // Google Analytics 4: Track PDF Application Downloads
     $('a[href$=".pdf"]').on('click', function() {
       if (typeof window.gtag === 'function') {

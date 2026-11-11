@@ -33,6 +33,12 @@ get_header(); ?>
 				<div id="membership-form-alert" class="alert"></div>
 
 				<form id="gmsra-membership-form" method="post">
+					<!-- Anti-spam honeypot field -->
+					<div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+						<label for="membership_website_url">Website</label>
+						<input type="text" id="membership_website_url" name="website_url" tabindex="-1" autocomplete="off">
+					</div>
+
 					<!-- Name Row -->
 					<div class="form-row">
 						<div class="form-group">

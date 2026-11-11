@@ -34,10 +34,7 @@
 $next_event = gmsra_get_next_calendar_event();
 $next_title = $next_event ? $next_event['title'] : 'Monthly Membership Meeting';
 $next_date  = ( $next_event && ( $next_event['start'] instanceof DateTime ) ) ? $next_event['start']->format( 'l, F j, Y \a\t g:i A' ) : gmsra_get_next_meeting_date() . ' at 1:00 PM';
-$next_loc   = ! empty( $next_event['location'] ) ? $next_event['location'] : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
-if ( ! empty( $next_loc ) && stripos( $next_loc, 'Royal Canadian Legion' ) === false ) {
-	$next_loc = 'Royal Canadian Legion, ' . $next_loc;
-}
+$next_loc   = ! empty( $next_event['location'] ) ? gmsra_format_event_location( $next_event['location'] ) : 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7';
 ?>
 <!-- Top Notification Bar -->
 <div class="top-notice-bar">

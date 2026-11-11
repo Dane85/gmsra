@@ -4,7 +4,6 @@ Official website and bespoke custom WordPress theme for the **General Motors Sal
 
 - 🌐 **Production Website**: [https://gmsalariedretirees.com](https://gmsalariedretirees.com)
 - 🔗 **Staging Mirror**: [https://gmsra.durhamweb.design](https://gmsra.durhamweb.design)
-- 🔌 **Direct Port Fallback**: [http://5.161.161.222:8080](http://5.161.161.222:8080)
 
 ---
 ## ⚡ Project Overview
@@ -14,7 +13,7 @@ This repository contains the complete local development environment and custom W
 ### Key Features
 - **Bespoke Theme (`gmsra-bespoke`)**: Clean, lightweight PHP and CSS design built from scratch with zero third-party page builders or dependency bloat.
 - **Accessible Typography & Contrast**: Scaled fonts and high-contrast WCAG-compliant styling for senior legibility.
-- **Dynamic Relative URL Routing**: Theme intercepts internal links and converts them to root-relative paths, preserving custom ports (such as `:8080`) without broken redirects.
+- **Dynamic Relative URL Routing**: Theme intercepts internal links and converts them to root-relative paths so production and the staging mirror share one codebase without broken redirects.
 - **Dual-Environment Database Configuration**: `wp-config.php` automatically detects whether it is running on LocalWP (`localhost`) or the Hetzner cloud VPS (`ubuntu-2gb-ash-2`) and adjusts database credentials seamlessly without merge conflicts.
 - **Dedicated Page Templates**:
   - `front-page.php` — Hero banner, quick announcements, mission statement, and featured cards.

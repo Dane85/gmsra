@@ -10,7 +10,20 @@ get_header(); ?>
 <section class="section">
 	<div class="container">
 		<header class="section-header">
-			<h1 class="section-title"><?php single_post_title(); ?></h1>
+			<h1 class="section-title">
+				<?php
+				if ( is_home() && ! is_front_page() ) {
+					single_post_title();
+				} elseif ( is_archive() ) {
+					echo wp_kses_post( get_the_archive_title() );
+				} elseif ( is_search() ) {
+					/* translators: %s: search query */
+					printf( esc_html__( 'Search Results for: %s', 'gmsra-bespoke' ), get_search_query() );
+				} else {
+					esc_html_e( 'News & Announcements', 'gmsra-bespoke' );
+				}
+				?>
+			</h1>
 		</header>
 
 		<?php if ( have_posts() ) : ?>

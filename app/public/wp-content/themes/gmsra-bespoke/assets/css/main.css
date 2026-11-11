@@ -1532,12 +1532,10 @@ textarea.form-control {
   .hero-lead {
     font-size: 0.98rem;
   }
-  .lightbox-close {
-    top: 12px;
-    right: 12px;
-    width: 44px;
-    height: 44px;
-    font-size: 2rem;
+  .lightbox-close-btn {
+    min-height: 42px;
+    padding: 0.4rem 0.9rem;
+    font-size: 1rem;
   }
 }
 

@@ -35,3 +35,11 @@ wp-config-local.php
 *.sql.gz
 *.sql.bak
 app/sql/
+
+# Authentication salts (generated on the server)
+wp-salts.php
+
+# Google Drive shortcut files (Docs/Sheets live in Drive, not Git)
+*.gdoc
+*.gsheet
+*.gslides

@@ -31,16 +31,22 @@ if ( gethostname() === 'ubuntu-2gb-ash-2' || file_exists( __DIR__ . '/wp-config-
 		define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) ?: '' );
 	}
 	define( 'DB_HOST', 'localhost' );
+	if ( ! defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		define( 'WP_ENVIRONMENT_TYPE', 'production' );
+	}
 } else {
 	/** Local development settings */
 	define( 'DB_NAME', 'local' );
 	define( 'DB_USER', 'root' );
 	define( 'DB_PASSWORD', getenv( 'LOCAL_DB_PASSWORD' ) ?: '' );
 	define( 'DB_HOST', 'localhost' );
+	if ( ! defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		define( 'WP_ENVIRONMENT_TYPE', 'local' );
+	}
 }
 
 /** Database charset to use in creating database tables. */
-define( 'DB_CHARSET', 'utf8' );
+define( 'DB_CHARSET', 'utf8mb4' );
 
 /** The database collate type. Don't change this if in doubt. */
 define( 'DB_COLLATE', '' );
@@ -56,16 +62,20 @@ define( 'DB_COLLATE', '' );
  *
  * @since 2.6.0
  */
+// Salts are NOT stored in Git. Production reads them from wp-config-live.php or the
+// untracked wp-salts.php (created on the server by Scripts/deploy/server-migrate-v2.6.sh).
+if ( ! defined( 'AUTH_KEY' ) && file_exists( __DIR__ . '/wp-salts.php' ) ) {
+	require_once __DIR__ . '/wp-salts.php';
+}
 if ( ! defined( 'AUTH_KEY' ) ) {
-	define( 'AUTH_KEY',          'tZdj4DP&(=q6q -^*OvhR8`L,3ay(51rkluAUxB)*Ij;^|xX`9VY9`b0OH/q$n&_' );
-	define( 'SECURE_AUTH_KEY',   '%U&t(No8W*h^SdE*A)PTjnMlu?i!3sozb828lB^k~ x*_$U&|p%s!YT4NtcFQn9/' );
-	define( 'LOGGED_IN_KEY',     'Dt1p4+l>biUEYvb%5I8tnasXA%i76fm@</585cnz]HyN^l_cBjQ+aZvc{i7|H%l:' );
-	define( 'NONCE_KEY',         'H:pK3Lk!9.@sC9vT>8`yWuSJ)t=<,S}e2T;3v7CNQu%1oM3cglNQ(_}2U<Qxa*6%' );
-	define( 'AUTH_SALT',         'q<~ZF A6|qX|^miD7bFy*SJV$32HnDM,1)7t=C:~IPAqCkR).#3Hu=r9WPuM3cSV' );
-	define( 'SECURE_AUTH_SALT',  '>,Ghgt_b=H(ax>s.P46W3T&Pd?Kojj<&%&?_$x~X!Vk:t/1ql)2t3:l5c.Q_kVN<' );
-	define( 'LOGGED_IN_SALT',    'WlGj~WRocm,CiX*`Ezr>Ojt^0DbfK-# @-3Fy`AN>;e0v9Uk^=yLQhIecJ$PSQU5' );
-	define( 'NONCE_SALT',        '?Z=cYMKP{1`2Yj{<YS{[)H,!`z+4k`^H-wN cd-ysr|Q4z:l%`;Y(bdSCzY>B3Ec' );
-	define( 'WP_CACHE_KEY_SALT', 'FeB`<xn1,5|_e:,~&oe%V@V]+NwGbJ,()~/ gkDn~!uiM_0Mm#vL37p@L@k89m:,' );
+	if ( gethostname() === 'ubuntu-2gb-ash-2' || file_exists( __DIR__ . '/wp-config-live.php' ) ) {
+		header( 'HTTP/1.1 503 Service Unavailable' );
+		exit( 'Configuration error: authentication salts missing.' );
+	}
+	// Local development only — throwaway values.
+	foreach ( array( 'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT', 'WP_CACHE_KEY_SALT' ) as $epic_salt_name ) {
+		define( $epic_salt_name, 'local-dev-only-' . $epic_salt_name );
+	}
 }
 
 
@@ -83,9 +93,10 @@ $table_prefix = 'wp_';
 /* Add any custom values between this line and the "stop editing" line. */
 
 if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
-	$proto = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) || ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) ) ? 'https://' : 'http://';
-	define( 'WP_HOME', $proto . $_SERVER['HTTP_HOST'] );
-	define( 'WP_SITEURL', $proto . $_SERVER['HTTP_HOST'] );
+	$clean_host = preg_replace( '/[^a-zA-Z0-9.\-:]/', '', (string) $_SERVER['HTTP_HOST'] );
+	$proto      = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) || ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) ) ? 'https://' : 'http://';
+	define( 'WP_HOME', $proto . $clean_host );
+	define( 'WP_SITEURL', $proto . $clean_host );
 }
 
 
@@ -106,7 +117,9 @@ if ( ! defined( 'WP_DEBUG' ) ) {
 	define( 'WP_DEBUG', false );
 }
 
-define( 'WP_ENVIRONMENT_TYPE', 'local' );
+if ( ! defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+	define( 'WP_ENVIRONMENT_TYPE', 'local' );
+}
 /* That's all, stop editing! Happy publishing. */
 
 /** Absolute path to the WordPress directory. */

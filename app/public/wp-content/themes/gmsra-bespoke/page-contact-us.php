@@ -33,6 +33,12 @@ get_header(); ?>
 				<div id="contact-form-alert" class="alert"></div>
 
 				<form id="gmsra-contact-form" method="post">
+					<!-- Anti-spam honeypot field -->
+					<div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+						<label for="contact_website_url">Website</label>
+						<input type="text" id="contact_website_url" name="website_url" tabindex="-1" autocomplete="off">
+					</div>
+
 					<div class="form-group">
 						<label for="contact_name">Your Name <span class="required">*</span></label>
 						<input type="text" id="contact_name" name="contact_name" class="form-control" required placeholder="Your Full Name">
