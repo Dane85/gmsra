@@ -37,12 +37,26 @@
 
 				<!-- Col 3: Meetings & Gatherings -->
 				<div class="footer-col">
-					<h4>Monthly Gatherings</h4>
-					<p><strong>When:</strong><br>2nd Tuesday of each month at 1:00 PM<br>(Doors open at 12:00 PM)</p>
-					<p style="margin-top: 0.5rem; font-size: 0.85rem; color: #94A3B8; line-height: 1.5;">
-						Meetings run Sept–Dec &amp; March–May.<br>June meeting is replaced by our Vic Pratt Golf Tournament.<br>(No meetings in Jan, Feb, July, or Aug).
-					</p>
-					<p style="margin-top: 0.75rem;"><strong>Where:</strong><br>Royal Canadian Legion<br>471 Simcoe St South<br>Oshawa, ON L1H 4J7</p>
+					<h4>Upcoming Gatherings</h4>
+					<?php
+					$footer_next = gmsra_get_next_calendar_event();
+					if ( $footer_next && ( $footer_next['start'] instanceof DateTime ) ) :
+						$footer_is_all_day = ! empty( $footer_next['is_all_day'] );
+						$footer_date = $footer_is_all_day ? $footer_next['start']->format( 'l, F j, Y' ) : $footer_next['start']->format( 'l, F j, Y \a\t g:i A' );
+					?>
+						<p><strong>Next Gathering:</strong><br><?php echo esc_html( $footer_next['title'] ); ?></p>
+						<p style="margin-top: 0.5rem; font-size: 0.85rem; color: #94A3B8; line-height: 1.5;">
+							📅 <?php echo esc_html( $footer_date ); ?><br>
+							<?php if ( ! empty( $footer_next['location'] ) ) : ?>
+								📍 <?php echo esc_html( $footer_next['location'] ); ?>
+							<?php endif; ?>
+						</p>
+						<p style="margin-top: 0.75rem;">
+							<a href="<?php echo esc_url( home_url( '/news-events/' ) ); ?>" style="color: var(--gmsra-gold); text-decoration: underline; font-size: 0.9rem;">View All Events &rarr;</a>
+						</p>
+					<?php else : ?>
+						<p>Check our <a href="<?php echo esc_url( home_url( '/news-events/' ) ); ?>" style="color: var(--gmsra-gold); text-decoration: underline;">News &amp; Events</a> page for upcoming meeting dates and announcements.</p>
+					<?php endif; ?>
 				</div>
 
 				<!-- Col 4: Official Association Contact -->

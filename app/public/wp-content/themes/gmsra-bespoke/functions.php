@@ -109,11 +109,7 @@ function gmsra_get_next_meeting_date() {
 	if ( $next && ( $next['start'] instanceof DateTime ) ) {
 		return $next['start']->format( 'l, F j, Y' );
 	}
-	$events = gmsra_get_default_upcoming_meetings( 1 );
-	if ( ! empty( $events ) && ( $events[0]['start'] instanceof DateTime ) ) {
-		return $events[0]['start']->format( 'l, F j, Y' );
-	}
-	return '2nd Tuesday of the month';
+	return '';
 }
 
 /**
@@ -720,7 +716,7 @@ function gmsra_parse_ics_date( $date_str ) {
 			return new DateTime( $iso, new DateTimeZone( $tz_string ) );
 		}
 	} elseif ( preg_match( '/^(\d{4})(\d{2})(\d{2})/', $date_str, $m ) ) {
-		return new DateTime( "{$m[1]}-{$m[2]}-{$m[3]} 13:00:00", new DateTimeZone( $tz_string ) );
+		return new DateTime( "{$m[1]}-{$m[2]}-{$m[3]} 00:00:00", new DateTimeZone( $tz_string ) );
 	}
 	return false;
 }
@@ -778,12 +774,17 @@ function gmsra_parse_ics( $ics_content ) {
 
 		if ( $line === 'BEGIN:VEVENT' ) {
 			$current_event = array(
-				'title'       => 'Upcoming GMSRA Gathering',
-				'start'       => null,
-				'end'         => null,
-				'location'    => 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7',
-				'description' => '',
-				'uid'         => '',
+				'title'         => 'Upcoming GMSRA Gathering',
+				'start'         => null,
+				'end'           => null,
+				'is_all_day'    => false,
+				'location'      => '',
+				'description'   => '',
+				'uid'           => '',
+				'base_uid'      => '',
+				'recurrence_id' => null,
+				'rrule'         => '',
+				'exdates'       => array(),
 			);
 		} elseif ( $line === 'END:VEVENT' && $current_event ) {
 			if ( $current_event['start'] instanceof DateTime ) {
@@ -794,38 +795,69 @@ function gmsra_parse_ics( $ics_content ) {
 				$now = new DateTime( 'now', new DateTimeZone( $tz_string ) );
 				$today_midnight = ( clone $now )->setTime( 0, 0, 0 );
 
-				// Expand recurring events if RRULE is present
-				if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
-					$orig_start = $current_event['start'];
-					$orig_end   = $current_event['end'];
-					$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
-					$first_of_this_month = ( clone $now )->modify( 'first day of this month' )->setTime( 0, 0, 0 );
+				// Skip statutory holidays if present in shared personal/association calendar
+				$title_lower = strtolower( trim( $current_event['title'] ) );
+				$is_holiday = in_array( $title_lower, array( 'new years day', 'canada day', 'civic holiday', 'labour day' ), true );
 
-					for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
-						$target_month = ( clone $first_of_this_month )->modify( "+{$m_offset} month" );
-						$y = $target_month->format('Y');
-						$m = $target_month->format('m');
+				// Executive meetings are internal board meetings and should not appear on the public website
+				$is_executive = ( stripos( $title_lower, 'executive' ) !== false );
 
-						// Handle 3rd Tuesday (e.g. BYDAY=3TU) or 2nd Tuesday (BYDAY=2TU)
-						$instance_dt = null;
-						if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
-							$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
-							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
-						} elseif ( stripos( $current_event['rrule'], 'BYDAY=2TU' ) !== false ) {
-							$instance_dt = new DateTime( "second tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
-							$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+				if ( ! $is_holiday && ! $is_executive ) {
+					// Expand recurring events if RRULE is present
+					if ( ! empty( $current_event['rrule'] ) && stripos( $current_event['rrule'], 'FREQ=MONTHLY' ) !== false ) {
+						$orig_start = $current_event['start'];
+						$orig_end   = $current_event['end'];
+						$duration   = ( $orig_end instanceof DateTime ) ? ( $orig_end->getTimestamp() - $orig_start->getTimestamp() ) : 5400;
+
+						for ( $m_offset = 0; $m_offset <= 12; $m_offset++ ) {
+							$target_month = ( clone $now )->modify( "+{$m_offset} month" );
+							$y = $target_month->format('Y');
+							$m = $target_month->format('m');
+							$m_int = (int)$m;
+
+							// Handle 3rd Tuesday (e.g. BYDAY=3TU)
+							$instance_dt = null;
+							if ( stripos( $current_event['rrule'], 'BYDAY=3TU' ) !== false ) {
+								$instance_dt = new DateTime( "third tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+								$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+							} elseif ( stripos( $current_event['rrule'], 'BYDAY=2TU' ) !== false ) {
+								$instance_dt = new DateTime( "second tuesday of {$y}-{$m}", new DateTimeZone( $tz_string ) );
+								$instance_dt->setTime( (int)$orig_start->format('H'), (int)$orig_start->format('i'), 0 );
+							}
+
+							if ( $instance_dt && $instance_dt >= $today_midnight ) {
+								// Check UNTIL in RRULE if present
+								if ( preg_match( '/UNTIL=(\d{8}(?:T\d{6}Z?)?)/i', $current_event['rrule'], $um ) ) {
+									$until_dt = gmsra_parse_ics_date( $um[1] );
+									if ( $until_dt && $instance_dt > $until_dt ) {
+										continue;
+									}
+								}
+
+								// Check EXDATE exclusions from Outlook (e.g. 2026-12-15, 2027-01-19, 2027-06-15, 2027-07-20)
+								$inst_date_str = $instance_dt->format( 'Y-m-d' );
+								if ( ! empty( $current_event['exdates'] ) && in_array( $inst_date_str, $current_event['exdates'], true ) ) {
+									continue;
+								}
+
+								// Additional safety: GMSRA Executive explicitly does NOT meet in December, January, June, or July
+								if ( stripos( $current_event['title'], 'Executive' ) !== false && in_array( $m_int, array( 1, 6, 7, 12 ), true ) ) {
+									continue;
+								}
+
+								$expanded = $current_event;
+								$expanded['start'] = $instance_dt;
+								$expanded['end'] = ( clone $instance_dt )->modify( "+{$duration} seconds" );
+								$expanded['uid'] = $current_event['uid'] . "-{$y}-{$m}";
+								$events[] = $expanded;
+							}
 						}
-
-						if ( $instance_dt && $instance_dt >= $today_midnight ) {
-							$expanded = $current_event;
-							$expanded['start'] = $instance_dt;
-							$expanded['end'] = ( clone $instance_dt )->modify( "+{$duration} seconds" );
-							$expanded['uid'] = $current_event['uid'] . "-{$y}-{$m}";
-							$events[] = $expanded;
+					} elseif ( $current_event['start'] >= $today_midnight ) {
+						$base_date_str = $current_event['start']->format( 'Y-m-d' );
+						if ( empty( $current_event['exdates'] ) || ! in_array( $base_date_str, $current_event['exdates'], true ) ) {
+							$events[] = $current_event;
 						}
 					}
-				} elseif ( $current_event['start'] >= $today_midnight ) {
-					$events[] = $current_event;
 				}
 			}
 			$current_event = null;
@@ -842,18 +874,31 @@ function gmsra_parse_ics( $ics_content ) {
 				$prop = explode( ';', $prop_full )[0];
 				if ( $prop === 'RRULE' ) {
 					$current_event['rrule'] = $val;
+				} elseif ( $prop === 'EXDATE' ) {
+					$dates = explode( ',', $val );
+					foreach ( $dates as $d ) {
+						$d = trim( $d );
+						if ( preg_match( '/^(\\d{4})(\\d{2})(\\d{2})/', $d, $dm ) ) {
+							$current_event['exdates'][] = "{$dm[1]}-{$dm[2]}-{$dm[3]}";
+						}
+					}
 				}
 
 				if ( $prop === 'SUMMARY' ) {
 					$current_event['title'] = $val;
 				} elseif ( $prop === 'DTSTART' ) {
+					if ( strpos( $prop_full, 'VALUE=DATE' ) !== false || preg_match( '/^\d{8}$/', $val ) ) {
+						$current_event['is_all_day'] = true;
+					}
 					$current_event['start'] = gmsra_parse_ics_date( $val );
 				} elseif ( $prop === 'DTEND' ) {
 					$current_event['end'] = gmsra_parse_ics_date( $val );
-				} elseif ( $prop === 'LOCATION' ) {
-					if ( ! empty( $val ) ) {
-						$current_event['location'] = gmsra_format_event_location( $val );
+				} elseif ( $prop === 'X-MICROSOFT-CDO-ALLDAYEVENT' ) {
+					if ( strtoupper( $val ) === 'TRUE' ) {
+						$current_event['is_all_day'] = true;
 					}
+				} elseif ( $prop === 'LOCATION' ) {
+					$current_event['location'] = $val;
 				} elseif ( $prop === 'DESCRIPTION' ) {
 					$current_event['description'] = gmsra_clean_ics_description( $val );
 				} elseif ( $prop === 'X-ALT-DESC' ) {
@@ -862,6 +907,9 @@ function gmsra_parse_ics( $ics_content ) {
 					}
 				} elseif ( $prop === 'UID' ) {
 					$current_event['uid'] = $val;
+					$current_event['base_uid'] = $val;
+				} elseif ( $prop === 'RECURRENCE-ID' ) {
+					$current_event['recurrence_id'] = gmsra_parse_ics_date( $val );
 				}
 			}
 		}
@@ -870,6 +918,37 @@ function gmsra_parse_ics( $ics_content ) {
 	usort( $events, function( $a, $b ) {
 		return $a['start']->getTimestamp() - $b['start']->getTimestamp();
 	} );
+
+	// Deduplicate identical events occurring on the same calendar day,
+	// merging RECURRENCE-ID override instances so event descriptions and updated details are always preserved.
+	$deduped_map = array();
+	foreach ( $events as $ev ) {
+		$date_str = $ev['start']->format( 'Y-m-d' );
+		$key = $date_str . '_' . strtolower( trim( $ev['title'] ) );
+		if ( ! isset( $deduped_map[ $key ] ) ) {
+			$deduped_map[ $key ] = $ev;
+		} else {
+			$existing = $deduped_map[ $key ];
+			$is_override = ( ! empty( $ev['recurrence_id'] ) );
+			if ( ! empty( $ev['description'] ) && ( empty( $existing['description'] ) || strlen( $ev['description'] ) > strlen( $existing['description'] ) || $is_override ) ) {
+				$existing['description'] = $ev['description'];
+			}
+			if ( ! empty( $ev['location'] ) && ( empty( $existing['location'] ) || $is_override ) ) {
+				$existing['location'] = $ev['location'];
+			}
+			if ( $is_override ) {
+				$existing['start'] = $ev['start'];
+				if ( ! empty( $ev['end'] ) ) {
+					$existing['end'] = $ev['end'];
+				}
+				if ( ! empty( $ev['title'] ) ) {
+					$existing['title'] = $ev['title'];
+				}
+			}
+			$deduped_map[ $key ] = $existing;
+		}
+	}
+	$events = array_values( $deduped_map );
 
 	return $events;
 }
@@ -917,7 +996,7 @@ function gmsra_get_default_upcoming_meetings( $count = 4 ) {
 				'title'       => 'Monthly Membership Meeting',
 				'start'       => $meeting_dt,
 				'end'         => ( clone $meeting_dt )->setTime( 15, 0, 0 ),
-				'location'    => 'Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7',
+				'location'    => '',
 				'description' => 'Doors open at 12:00 PM for coffee, treats, and casual socializing. Meeting and guest speaker begins at 1:00 PM.',
 				'uid'         => "gmsra-recurring-{$year}-{$month}",
 			);
@@ -980,10 +1059,8 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 		}
 	}
 
-	$default_events = gmsra_get_default_upcoming_meetings( 7 );
-	set_transient( $cache_key, $default_events, $ttl );
-	$request_events = $default_events;
-	return $default_events;
+	set_transient( $cache_key, array(), 60 );
+	return array();
 }
 
 /**
@@ -1001,16 +1078,22 @@ function gmsra_add_to_google_calendar_url( $event ) {
 	if ( empty( $event['start'] ) || ! ( $event['start'] instanceof DateTime ) ) {
 		return '#';
 	}
-	$start = ( clone $event['start'] )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Ymd\THis\Z' );
-	$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] )->setTimezone( new DateTimeZone( 'UTC' ) ) : ( clone $event['start'] )->modify( '+2 hours' )->setTimezone( new DateTimeZone( 'UTC' ) );
-	$end = $end_dt->format( 'Ymd\THis\Z' );
+	if ( ! empty( $event['is_all_day'] ) ) {
+		$start = $event['start']->format( 'Ymd' );
+		$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] ) : ( clone $event['start'] )->modify( '+1 day' );
+		$end = $end_dt->format( 'Ymd' );
+	} else {
+		$start = ( clone $event['start'] )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Ymd\THis\Z' );
+		$end_dt = ( $event['end'] instanceof DateTime ) ? ( clone $event['end'] )->setTimezone( new DateTimeZone( 'UTC' ) ) : ( clone $event['start'] )->modify( '+2 hours' )->setTimezone( new DateTimeZone( 'UTC' ) );
+		$end = $end_dt->format( 'Ymd\THis\Z' );
+	}
 
 	$params = array(
 		'action'   => 'TEMPLATE',
 		'text'     => $event['title'],
 		'dates'    => "{$start}/{$end}",
 		'details'  => ! empty( $event['description'] ) ? $event['description'] : 'General Motors Salaried Retirees Association Gathering',
-		'location' => $event['location'],
+		'location' => ! empty( $event['location'] ) ? $event['location'] : '',
 	);
 	return 'https://calendar.google.com/calendar/render?' . http_build_query( $params );
 }

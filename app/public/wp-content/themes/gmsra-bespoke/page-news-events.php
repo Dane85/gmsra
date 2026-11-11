@@ -27,7 +27,7 @@ get_header(); ?>
 		<div class="section-header">
 			<span class="section-tag">Events &amp; Schedule</span>
 			<h2 class="section-title">Upcoming Association Gatherings</h2>
-			<p class="section-desc">Meetings take place on the <strong>2nd Tuesday of the month</strong> at 1:00 PM (doors open at 12:00 PM) during active meeting months (Sept–Dec &amp; March–May). Our June meeting is replaced with our annual <strong>Vic Pratt Memorial Golf Tournament</strong>. <em>(Please note: There are no monthly meetings in January, February, July, or August).</em></p>
+			<p class="section-desc">Upcoming meetings, luncheons, and social gatherings synchronized directly with the official GMSRA calendar.</p>
 		</div>
 
 		<?php
@@ -39,7 +39,8 @@ get_header(); ?>
 					$dt = $evt['start'];
 					$month_badge = $dt instanceof DateTime ? $dt->format('M') : 'EVENT';
 					$day_badge   = $dt instanceof DateTime ? $dt->format('j') : '';
-					$date_time_str = $dt instanceof DateTime ? $dt->format('l, F j, Y \a\t g:i A') : '';
+					$is_all_day  = ! empty( $evt['is_all_day'] );
+					$date_time_str = ( $dt instanceof DateTime ) ? ( $is_all_day ? $dt->format( 'l, F j, Y' ) : $dt->format( 'l, F j, Y \a\t g:i A' ) ) : '';
 				?>
 					<div class="card" style="border-top: 5px solid var(--gmsra-blue); position: relative;">
 						<div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem;">
@@ -54,23 +55,31 @@ get_header(); ?>
 						</div>
 
 						<p style="color: var(--gmsra-text-muted); font-size: 0.95rem; margin-bottom: 0.75rem;">
-							<strong>📅 Date &amp; Time:</strong> <?php echo esc_html( $date_time_str ); ?><br>
-							<strong>📍 Location:</strong> <?php echo esc_html( $evt['location'] ); ?>
+							<strong>📅 <?php echo $is_all_day ? 'Date:' : 'Date &amp; Time:'; ?></strong> <?php echo esc_html( $date_time_str ); ?>
+							<?php if ( ! empty( $evt['location'] ) ) : ?>
+								<br><strong>📍 Location:</strong> <?php echo esc_html( $evt['location'] ); ?>
+							<?php endif; ?>
 						</p>
 
 						<?php if ( ! empty( $evt['description'] ) ) : ?>
-							<div class="card-desc" style="font-size: 0.95rem; line-height: 1.6; margin-top: 0.75rem;">
+							<div class="card-desc" style="font-size: 0.95rem; line-height: 1.65; margin-top: 0.75rem; margin-bottom: 0.5rem; padding: 0.85rem 1rem; background: rgba(0, 75, 135, 0.04); border-left: 3px solid var(--gmsra-blue); border-radius: 0 8px 8px 0; color: var(--gmsra-text);">
 								<?php echo wp_kses_post( wpautop( $evt['description'] ) ); ?>
 							</div>
 						<?php endif; ?>
 
-						<div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--gmsra-border); display: flex; gap: 0.5rem;">
+						<div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gmsra-border); display: flex; gap: 0.5rem;">
 							<a href="<?php echo esc_url( gmsra_add_to_google_calendar_url( $evt ) ); ?>" target="_blank" rel="noopener" class="btn btn-secondary" style="width: 100%; font-size: 0.88rem; padding: 0.55rem 0.85rem;">
 								+ Add to Calendar
 							</a>
 						</div>
 					</div>
 				<?php endforeach; ?>
+			</div>
+		<?php else : ?>
+			<div style="text-align: center; padding: 3rem 1.5rem; background: var(--gmsra-surface); border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); margin-bottom: 2rem;">
+				<div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📅</div>
+				<h3 style="font-size: 1.35rem; color: var(--gmsra-navy); margin-bottom: 0.5rem;">No Upcoming Events Currently Scheduled</h3>
+				<p style="color: var(--gmsra-text-muted); max-width: 540px; margin: 0 auto;">Please check back soon as new meetings, outings, and association gatherings are published to the calendar.</p>
 			</div>
 		<?php endif; ?>
 
