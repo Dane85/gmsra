@@ -196,6 +196,7 @@ function gmsra_configure_smtp_transport( $phpmailer ) {
 		$phpmailer->SMTPSecure = defined( 'GMSRA_SMTP_SECURE' ) ? GMSRA_SMTP_SECURE : 'tls';
 		$phpmailer->Username   = GMSRA_SMTP_USER;
 		$phpmailer->Password   = defined( 'GMSRA_SMTP_PASS' ) ? GMSRA_SMTP_PASS : '';
+		$phpmailer->Timeout    = 15; // PHPMailer default is 300s; never leave a form submitter hanging on a slow mail server.
 		$from_email            = defined( 'GMSRA_SMTP_FROM' ) ? GMSRA_SMTP_FROM : GMSRA_SMTP_USER;
 		$phpmailer->setFrom( $from_email, 'General Motors Salaried Retirees Association (GMSRA)', false );
 	}
