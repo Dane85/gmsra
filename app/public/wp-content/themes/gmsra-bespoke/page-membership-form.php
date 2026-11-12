@@ -122,10 +122,6 @@ get_header(); ?>
 								<input type="checkbox" name="involvement[]" value="Act on Committee">
 								<span>Act on a Club Committee (Social, Sports, Speakers)</span>
 							</label>
-							<label class="checkbox-label">
-								<input type="checkbox" name="involvement[]" value="Help set up hall prior to monthly meetings">
-								<span>Help set up the hall &amp; refreshments prior to monthly meetings</span>
-							</label>
 						</div>
 					</div>
 
