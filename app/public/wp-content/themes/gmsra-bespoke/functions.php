@@ -1026,7 +1026,9 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 
 	if ( ! $force_refresh ) {
 		$cached = get_transient( $cache_key );
-		if ( false !== $cached && is_array( $cached ) && ! empty( $cached ) ) {
+		// An empty array is a valid cached result (a recent failed fetch); honour it so
+		// a slow or unreachable calendar feed is not re-fetched on every page load.
+		if ( false !== $cached && is_array( $cached ) ) {
 			$request_events = $cached;
 			return $cached;
 		}
@@ -1043,7 +1045,7 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 		$clean_url = preg_replace( '/^webcal:\/\//i', 'https://', trim( $ics_url ) );
 		$clean_url = preg_replace( '/\/calendar\.html$/i', '/calendar.ics', $clean_url );
 		$response  = wp_remote_get( $clean_url, array(
-			'timeout'    => 8,
+			'timeout'    => 4,
 			'sslverify'  => true,
 			'user-agent' => 'Mozilla/5.0 (compatible; GMSRA-Calendar-Sync/1.0)',
 		) );
@@ -1053,14 +1055,26 @@ function gmsra_get_calendar_events( $force_refresh = false ) {
 			$events = gmsra_parse_ics( $body );
 			if ( ! empty( $events ) ) {
 				set_transient( $cache_key, $events, $ttl );
+				update_option( 'gmsra_calendar_events_last_good', $events, false );
 				$request_events = $events;
 				return $events;
 			}
 		}
 	}
 
-	set_transient( $cache_key, array(), 60 );
-	return array();
+	// Feed failed: serve the last successful copy (if any) and back off for 15 minutes
+	// before trying the feed again, so visitors never wait on a dead feed.
+	$fallback = get_option( 'gmsra_calendar_events_last_good', array() );
+	if ( ! is_array( $fallback ) ) {
+		$fallback = array();
+	}
+	$today_midnight = ( new DateTime( 'now', new DateTimeZone( wp_timezone_string() ) ) )->setTime( 0, 0, 0 );
+	$fallback       = array_values( array_filter( $fallback, function ( $ev ) use ( $today_midnight ) {
+		return isset( $ev['start'] ) && $ev['start'] instanceof DateTime && $ev['start'] >= $today_midnight;
+	} ) );
+	set_transient( $cache_key, $fallback, $ttl );
+	$request_events = $fallback;
+	return $fallback;
 }
 
 /**
