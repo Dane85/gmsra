@@ -474,6 +474,17 @@ add_action( 'admin_post_gmsra_resend_application_emails', 'gmsra_handle_admin_re
  * Helper: Check Honeypot & IP Rate Limit for Public AJAX Forms
  */
 function gmsra_verify_public_form_submission( $form_type = 'form' ) {
+	// 0. Security token check. WordPress nonces expire after ~24h, so a visitor who left
+	// the page open overnight gets a clear "refresh" message instead of a bare "-1".
+	if ( ! check_ajax_referer( 'gmsra_form_nonce', 'nonce', false ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'This page has expired for security reasons. Please refresh the page (your browser may keep what you typed) and submit again.', 'gmsra-bespoke' ),
+				'code'    => 'expired_nonce',
+			)
+		);
+	}
+
 	// 1. Honeypot check: bots fill hidden fields
 	if ( ! empty( $_POST['website_url'] ) ) {
 		wp_send_json_success(
@@ -498,10 +509,35 @@ function gmsra_verify_public_form_submission( $form_type = 'form' ) {
 }
 
 /**
+ * Helper: detect the random-case gibberish that spam bots submit
+ * (e.g. "hugONfDszkiwIzdsSoGq"). A single word with 3+ lower-to-upper case
+ * switches never occurs in real names or messages ("McDonald" has 1).
+ * Flagged submissions are still SAVED (as Drafts) — they just don't email anyone.
+ */
+function gmsra_looks_like_bot_text( ...$values ) {
+	foreach ( $values as $value ) {
+		foreach ( preg_split( '/\s+/', (string) $value ) as $word ) {
+			if ( strlen( $word ) >= 8 && preg_match_all( '/[a-z][A-Z]/', $word ) >= 3 ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * Helper: park a suspected-spam submission as a Draft without sending email.
+ */
+function gmsra_quarantine_submission( $post_id ) {
+	wp_update_post( array( 'ID' => $post_id, 'post_status' => 'draft' ) );
+	update_post_meta( $post_id, '_spam_flag', 'gibberish' );
+	update_post_meta( $post_id, '_admin_email_status', 'skipped_suspected_spam' );
+}
+
+/**
  * Handle AJAX Membership Form Submission
  */
 function gmsra_handle_membership_submission() {
-	check_ajax_referer( 'gmsra_form_nonce', 'nonce' );
 	gmsra_verify_public_form_submission( 'membership' );
 
 	$first_name  = sanitize_text_field( $_POST['first_name'] ?? '' );
@@ -553,8 +589,12 @@ function gmsra_handle_membership_submission() {
 		update_post_meta( $post_id, '_department', $department );
 		update_post_meta( $post_id, '_involvement', implode( ', ', $involvement_clean ) );
 
-		// Build and send Executive + Applicant emails with automatic fallback to Roy Ward (back.wards@sympatico.ca)
-		gmsra_build_and_send_application_emails( $post_id );
+		if ( gmsra_looks_like_bot_text( $first_name, $last_name, $spouse, $address, $city, $department ) ) {
+			gmsra_quarantine_submission( $post_id );
+		} else {
+			// Build and send Executive + Applicant emails with automatic fallback to Roy Ward (back.wards@sympatico.ca)
+			gmsra_build_and_send_application_emails( $post_id );
+		}
 	}
 
 	wp_send_json_success(
@@ -570,7 +610,6 @@ add_action( 'wp_ajax_nopriv_gmsra_submit_membership', 'gmsra_handle_membership_s
  * Handle AJAX Contact Form Submission
  */
 function gmsra_handle_contact_submission() {
-	check_ajax_referer( 'gmsra_form_nonce', 'nonce' );
 	gmsra_verify_public_form_submission( 'contact' );
 
 	$name          = sanitize_text_field( $_POST['contact_name'] ?? '' );
@@ -605,6 +644,15 @@ function gmsra_handle_contact_submission() {
 		update_post_meta( $contact_post_id, '_contact_subject', $subject_input );
 		update_post_meta( $contact_post_id, '_contact_message', $user_msg );
 		update_post_meta( $contact_post_id, '_submitted_at', $timestamp );
+
+		if ( gmsra_looks_like_bot_text( $name, $user_msg ) ) {
+			gmsra_quarantine_submission( $contact_post_id );
+			wp_send_json_success(
+				array(
+					'message' => __( 'Thank you for reaching out! Your message has been sent to the GMSRA executive team.', 'gmsra-bespoke' ),
+				)
+			);
+		}
 	}
 
 	$subject  = "GMSRA Website Contact: [{$subject_input}] from {$name}";
@@ -1269,6 +1317,9 @@ function gmsra_self_heal_database_defaults() {
 	update_option( 'gmsra_audit_fixes_v1', '1', true );
 }
 add_action( 'init', 'gmsra_self_heal_database_defaults', 20 );
+
+// XML-RPC is blocked at nginx (2026-11-11 hardening); stop advertising its RSD endpoint.
+remove_action( 'wp_head', 'rsd_link' );
 
 
 

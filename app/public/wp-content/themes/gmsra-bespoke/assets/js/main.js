@@ -149,9 +149,10 @@
             $('html, body').animate({ scrollTop: $alert.offset().top - 120 }, 300);
           }
         },
-        error: function() {
+        error: function(xhr) {
           $btn.prop('disabled', false).html(originalBtnText);
-          $alert.addClass('alert-error').html('An unexpected network error occurred. Please try again or download the printable PDF form.').fadeIn();
+          const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message;
+          $alert.addClass('alert-error').text(serverMsg || 'An unexpected network error occurred. Please try again or download the printable PDF form.').fadeIn();
         }
       });
     });
@@ -194,9 +195,10 @@
             $alert.addClass('alert-error').html(res.data.message).fadeIn();
           }
         },
-        error: function() {
+        error: function(xhr) {
           $btn.prop('disabled', false).html(originalBtnText);
-          $alert.addClass('alert-error').html('An error occurred. Please email GMSRA@gmsalariedretirees.com directly.').fadeIn();
+          const serverMsg = xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message;
+          $alert.addClass('alert-error').text(serverMsg || 'An error occurred. Please email GMSRA@gmsalariedretirees.com directly.').fadeIn();
         }
       });
     });
