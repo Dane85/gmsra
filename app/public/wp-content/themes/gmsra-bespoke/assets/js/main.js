@@ -38,14 +38,14 @@
 
     // Close mobile nav when clicking an in-page anchor link (e.g. href="#content")
     $('.nav-link[href^="#"], .nav-menu li a[href^="#"]').on('click', function() {
-      if ($(window).width() <= 1060) {
+      if ($(window).width() <= 1279) {
         closeMobileNav();
       }
     });
 
     // Close mobile nav when clicking outside the header
     $(document).on('click', function(e) {
-      if ($(window).width() <= 1060 && $nav.hasClass('active')) {
+      if ($(window).width() <= 1279 && $nav.hasClass('active')) {
         if (!$(e.target).closest('#masthead').length) {
           closeMobileNav();
         }
@@ -54,7 +54,7 @@
 
     // Reset mobile nav state if viewport is resized to desktop width
     $(window).on('resize', function() {
-      if ($(window).width() > 1060 && $nav.hasClass('active')) {
+      if ($(window).width() > 1279 && $nav.hasClass('active')) {
         closeMobileNav();
       }
     });

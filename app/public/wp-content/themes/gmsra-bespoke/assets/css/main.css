@@ -1105,23 +1105,28 @@ textarea.form-control {
 }
 
 /* Responsive Breakpoints */
-@media (max-width: 1240px) and (min-width: 1061px) {
+/* Desktop header: the 1240px container is too narrow for the roomy nav, so keep it compact
+   at every desktop width (the Join button was pushed past the edge and caused sideways scroll). */
+@media (min-width: 1280px) {
   .header-inner {
     gap: 1rem;
   }
   .main-nav {
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-shrink: 1;
+    min-width: 0;
   }
   .nav-menu {
-    gap: 0.35rem;
+    gap: 0.2rem;
   }
   .nav-link, .nav-menu li a {
-    padding: 0.55rem 0.85rem;
+    padding: 0.55rem 0.75rem;
     font-size: 0.95rem;
   }
   .main-nav .btn {
-    padding: 0.65rem 1.15rem;
+    padding: 0.65rem 1.1rem;
     font-size: 0.92rem;
+    margin-left: 0.25rem;
   }
   .brand-title {
     font-size: 1.2rem;
@@ -1131,7 +1136,7 @@ textarea.form-control {
   }
 }
 
-@media (max-width: 1060px) {
+@media (max-width: 1279px) {
   .site-header {
     position: sticky;
     top: 0;
