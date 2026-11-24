@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>📝</span> Membership Registration &amp; Renewal
+				<?php echo gmsra_icon( 'file-text' ); ?> Membership Registration &amp; Renewal
 			</div>
 			<h1 class="hero-title">Join or Renew Your Membership</h1>
 			<p class="hero-subtitle">Welcoming All General Motors of Canada Salaried Retirees &amp; Spouses</p>
@@ -30,7 +30,7 @@ get_header(); ?>
 				<h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Membership Application Form</h2>
 				<p style="color: var(--gmsra-text-muted); margin-bottom: 2rem;">Please complete the form below. Once submitted, you will receive an immediate confirmation email with payment details.</p>
 
-				<div id="membership-form-alert" class="alert"></div>
+				<div id="membership-form-alert" class="alert" role="status" aria-live="polite"></div>
 
 				<form id="gmsra-membership-form" method="post">
 					<!-- Anti-spam honeypot field -->
@@ -43,11 +43,11 @@ get_header(); ?>
 					<div class="form-row">
 						<div class="form-group">
 							<label for="first_name">First Name <span class="required">*</span></label>
-							<input type="text" id="first_name" name="first_name" class="form-control" required placeholder="John">
+							<input type="text" id="first_name" name="first_name" class="form-control" required autocomplete="given-name" placeholder="John">
 						</div>
 						<div class="form-group">
 							<label for="last_name">Last Name <span class="required">*</span></label>
-							<input type="text" id="last_name" name="last_name" class="form-control" required placeholder="Smith">
+							<input type="text" id="last_name" name="last_name" class="form-control" required autocomplete="family-name" placeholder="Smith">
 						</div>
 					</div>
 
@@ -61,11 +61,11 @@ get_header(); ?>
 					<div class="form-row">
 						<div class="form-group" style="flex: 2;">
 							<label for="address">Street Address <span class="required">*</span></label>
-							<input type="text" id="address" name="address" class="form-control" required placeholder="123 King St W">
+							<input type="text" id="address" name="address" class="form-control" required autocomplete="address-line1" placeholder="123 King St W">
 						</div>
 						<div class="form-group" style="flex: 1;">
 							<label for="apt">Apt / Suite No.</label>
-							<input type="text" id="apt" name="apt" class="form-control" placeholder="Apt 4B">
+							<input type="text" id="apt" name="apt" class="form-control" autocomplete="address-line2" placeholder="Apt 4B">
 						</div>
 					</div>
 
@@ -73,15 +73,15 @@ get_header(); ?>
 					<div class="form-row-3">
 						<div class="form-group">
 							<label for="city">City <span class="required">*</span></label>
-							<input type="text" id="city" name="city" class="form-control" required value="Oshawa" placeholder="Oshawa">
+							<input type="text" id="city" name="city" class="form-control" required autocomplete="address-level2" value="Oshawa" placeholder="Oshawa">
 						</div>
 						<div class="form-group">
 							<label for="province">Province <span class="required">*</span></label>
-							<input type="text" id="province" name="province" class="form-control" required value="Ontario" placeholder="Ontario">
+							<input type="text" id="province" name="province" class="form-control" required autocomplete="address-level1" value="Ontario" placeholder="Ontario">
 						</div>
 						<div class="form-group">
 							<label for="postal_code">Postal Code <span class="required">*</span></label>
-							<input type="text" id="postal_code" name="postal_code" class="form-control" required placeholder="L1H 7V4">
+							<input type="text" id="postal_code" name="postal_code" class="form-control" required autocomplete="postal-code" placeholder="L1H 7V4">
 						</div>
 					</div>
 
@@ -89,11 +89,11 @@ get_header(); ?>
 					<div class="form-row">
 						<div class="form-group">
 							<label for="phone">Phone Number <span class="required">*</span></label>
-							<input type="tel" id="phone" name="phone" class="form-control" required placeholder="905-555-0123">
+							<input type="tel" id="phone" name="phone" class="form-control" required autocomplete="tel" placeholder="905-555-0123">
 						</div>
 						<div class="form-group">
 							<label for="email">Email Address <span class="required">*</span></label>
-							<input type="email" id="email" name="email" class="form-control" required placeholder="name@example.com">
+							<input type="email" id="email" name="email" class="form-control" required autocomplete="email" placeholder="name@example.com">
 						</div>
 					</div>
 
@@ -152,7 +152,7 @@ get_header(); ?>
 						<h4 style="font-size: 1rem; color: var(--gmsra-blue); margin-bottom: 0.25rem;">1. Interac e-Transfer</h4>
 						<p style="font-size: 0.92rem; color: var(--gmsra-text-muted);">
 							Send your e-transfer to:<br>
-							📧 <a href="mailto:bgboddy@yahoo.ca" style="font-weight: 700; color: var(--gmsra-blue); word-break: break-all;">bgboddy@yahoo.ca</a><br>
+							<?php echo gmsra_icon( 'mail' ); ?> <a href="mailto:bgboddy@yahoo.ca" style="font-weight: 700; color: var(--gmsra-blue); word-break: break-all;">bgboddy@yahoo.ca</a><br>
 							<small style="color: #64748B;">Please include applicant's full name in the e-transfer message.</small>
 						</p>
 					</div>

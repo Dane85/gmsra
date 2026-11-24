@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>🏆</span> Serving GM of Canada Salaried Retirees Since 1982
+				<?php echo gmsra_icon( 'award' ); ?> Serving GM of Canada Salaried Retirees Since 1982
 			</div>
 			<h1 class="hero-title">Reconnect. Engage.<br>Enjoy Your Retirement.</h1>
 			<p class="hero-subtitle">General Motors Salaried Retirees Association (GMSRA)</p>
@@ -43,10 +43,10 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 	<div class="meeting-banner-wrap">
 		<div class="meeting-banner">
 			<div class="meeting-banner-info">
-				<div class="meeting-icon-box">📅</div>
+				<div class="meeting-icon-box"><?php echo gmsra_icon( 'calendar' ); ?></div>
 				<div class="meeting-banner-text">
 					<span class="top-notice-badge">Next Gathering</span>
-					<h3><?php echo esc_html( $next_title ); ?></h3>
+					<h2><?php echo esc_html( $next_title ); ?></h2>
 					<p><?php echo esc_html( $next_date ); ?><?php if ( ! empty( $next_loc ) ) : ?> &bull; <?php echo esc_html( $next_loc ); ?><?php endif; ?></p>
 				</div>
 			</div>
@@ -74,37 +74,37 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 
 		<div class="cards-grid">
 			<div class="card">
-				<div class="card-icon">📅</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'calendar' ); ?></div>
 				<h3 class="card-title">Monthly Meetings</h3>
 				<p class="card-desc">Held the 2nd Tuesday of the month at 1:00 PM (doors open at noon) during Sept–Dec and March–May. June features our Vic Pratt Golf Tournament (no meetings in Jan, Feb, July, or Aug).</p>
 			</div>
 
 			<div class="card">
-				<div class="card-icon">🤝</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'users' ); ?></div>
 				<h3 class="card-title">Fellowship &amp; Community</h3>
 				<p class="card-desc">Rekindle relationships with GM colleagues, share fond memories, and enjoy a welcoming and supportive network of longtime friends.</p>
 			</div>
 
 			<div class="card">
-				<div class="card-icon">🎉</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'sparkles' ); ?></div>
 				<h3 class="card-title">Seasonal Celebrations</h3>
 				<p class="card-desc">Special lunches, holiday festivities, and social gatherings organized throughout the year to bring our members together.</p>
 			</div>
 
 			<div class="card">
-				<div class="card-icon">🎊</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'gift' ); ?></div>
 				<h3 class="card-title">Social &amp; Special Events</h3>
 				<p class="card-desc">Seasonal lunches, holiday parties, and friendly gatherings that bring our community together to celebrate lifelong friendships.</p>
 			</div>
 
 			<div class="card">
-				<div class="card-icon">🗣️</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'mic' ); ?></div>
 				<h3 class="card-title">Expert Guest Speakers</h3>
 				<p class="card-desc">Learn something new each month! We host presentations from automotive historians, healthcare specialists, financial advisors, and civic leaders.</p>
 			</div>
 
 			<div class="card">
-				<div class="card-icon">📰</div>
+				<div class="card-icon"><?php echo gmsra_icon( 'newspaper' ); ?></div>
 				<h3 class="card-title">Monthly Newsletter</h3>
 				<p class="card-desc">Stay informed with club updates, event recaps, member milestones, and retiree notices delivered right to your inbox or mailbox.</p>
 			</div>
@@ -124,11 +124,11 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 				<p>Whether you spent your career in engineering, manufacturing, finance, administration, or management, GMSRA is your home to stay in touch, support one another, and celebrate the shared legacy that made GM of Canada legendary.</p>
 				<div class="pillars-list">
 					<div class="pillar-item">
-						<h4>🤝 Community</h4>
+						<h3><?php echo gmsra_icon( 'users' ); ?> Community</h3>
 						<p>Bringing people together through shared automotive history.</p>
 					</div>
 					<div class="pillar-item">
-						<h4>🔗 Connection</h4>
+						<h3><?php echo gmsra_icon( 'link' ); ?> Connection</h3>
 						<p>Maintaining bonds that endure for decades after retirement.</p>
 					</div>
 				</div>

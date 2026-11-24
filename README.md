@@ -13,6 +13,9 @@ This repository contains the complete local development environment and custom W
 ### Key Features
 - **Bespoke Theme (`gmsra-bespoke`)**: Clean, lightweight PHP and CSS design built from scratch with zero third-party page builders or dependency bloat.
 - **Accessible Typography & Contrast**: Scaled fonts and high-contrast WCAG-compliant styling for senior legibility.
+- **SVG Line Icons**: `gmsra_icon( $name )` in `functions.php` draws the theme's icons as inline SVG (no emoji, so they look the same on every device and screen readers skip them). The WordPress emoji script is turned off.
+- **Accessibility Audit**: see `docs/accessibility-audit-2026-11-21.md` (contrast, headings, gallery labels, announced form results, autofill).
+- **Design System**: brand book, tokens and components in `Epic Expressions/Design Systems/GMSRA`.
 - **Dynamic Relative URL Routing**: Theme intercepts internal links and converts them to root-relative paths so production and the staging mirror share one codebase without broken redirects.
 - **Dual-Environment Database Configuration**: `wp-config.php` automatically detects whether it is running on LocalWP (`localhost`) or the Hetzner cloud VPS (`ubuntu-2gb-ash-2`) and adjusts database credentials seamlessly without merge conflicts.
 - **Dedicated Page Templates**:

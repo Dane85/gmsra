@@ -46,9 +46,9 @@
 					?>
 						<p><strong>Next Gathering:</strong><br><?php echo esc_html( $footer_next['title'] ); ?></p>
 						<p style="margin-top: 0.5rem; font-size: 0.85rem; color: #94A3B8; line-height: 1.5;">
-							📅 <?php echo esc_html( $footer_date ); ?><br>
+							<?php echo gmsra_icon( 'calendar' ); ?> <?php echo esc_html( $footer_date ); ?><br>
 							<?php if ( ! empty( $footer_next['location'] ) ) : ?>
-								📍 <?php echo esc_html( $footer_next['location'] ); ?>
+								<?php echo gmsra_icon( 'map-pin' ); ?> <?php echo esc_html( $footer_next['location'] ); ?>
 							<?php endif; ?>
 						</p>
 						<p style="margin-top: 0.75rem;">
@@ -66,7 +66,7 @@
 					<p style="margin-bottom: 1rem;">
 						<strong>Email:</strong><br>
 						<span style="display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.35rem; max-width: 100%;">
-							<span>📧</span>
+							<?php echo gmsra_icon( 'mail' ); ?>
 							<a href="mailto:GMSRA@gmsalariedretirees.com" class="footer-email-link">GMSRA@gmsalariedretirees.com</a>
 						</span>
 					</p>

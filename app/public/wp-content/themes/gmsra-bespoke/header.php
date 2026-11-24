@@ -44,11 +44,11 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 		<div class="top-notice-inner">
 			<div class="top-notice-item">
 				<span class="top-notice-badge"><?php esc_html_e( 'Next Gathering', 'gmsra-bespoke' ); ?></span>
-				<span>📅 <strong><?php echo esc_html( $next_title ); ?>:</strong> <?php echo esc_html( $next_date ); ?></span>
+				<span><?php echo gmsra_icon( 'calendar' ); ?> <strong><?php echo esc_html( $next_title ); ?>:</strong> <?php echo esc_html( $next_date ); ?></span>
 			</div>
 			<?php if ( ! empty( $next_loc ) ) : ?>
 				<div class="top-notice-item">
-					<span>📍 <?php echo esc_html( $next_loc ); ?></span>
+					<span><?php echo gmsra_icon( 'map-pin' ); ?> <?php echo esc_html( $next_loc ); ?></span>
 				</div>
 			<?php endif; ?>
 		</div>

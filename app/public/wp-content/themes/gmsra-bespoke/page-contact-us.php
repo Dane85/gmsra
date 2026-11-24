@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>📬</span> Get in Touch
+				<?php echo gmsra_icon( 'mail' ); ?> Get in Touch
 			</div>
 			<h1 class="hero-title">Contact GMSRA</h1>
 			<p class="hero-subtitle">Have Questions or Want to Get Involved? We're Here to Help.</p>
@@ -30,7 +30,7 @@ get_header(); ?>
 				<h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Send Us a Message</h2>
 				<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">Fill out this form and a member of the GMSRA executive will respond promptly.</p>
 
-				<div id="contact-form-alert" class="alert"></div>
+				<div id="contact-form-alert" class="alert" role="status" aria-live="polite"></div>
 
 				<form id="gmsra-contact-form" method="post">
 					<!-- Anti-spam honeypot field -->
@@ -41,12 +41,12 @@ get_header(); ?>
 
 					<div class="form-group">
 						<label for="contact_name">Your Name <span class="required">*</span></label>
-						<input type="text" id="contact_name" name="contact_name" class="form-control" required placeholder="Your Full Name">
+						<input type="text" id="contact_name" name="contact_name" class="form-control" required autocomplete="name" placeholder="Your Full Name">
 					</div>
 
 					<div class="form-group">
 						<label for="contact_email">Your Email Address <span class="required">*</span></label>
-						<input type="email" id="contact_email" name="contact_email" class="form-control" required placeholder="youremail@example.com">
+						<input type="email" id="contact_email" name="contact_email" class="form-control" required autocomplete="email" placeholder="youremail@example.com">
 					</div>
 
 					<div class="form-group">
@@ -115,7 +115,7 @@ get_header(); ?>
 			<div style="background: var(--gmsra-surface); padding: 1.5rem; border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); box-shadow: var(--gmsra-shadow-md);">
 				<div class="map-box-header">
 					<div>
-						<h3 style="font-size: 1.2rem; margin: 0;">📍 Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7</h3>
+						<h3 style="font-size: 1.2rem; margin: 0;"><?php echo gmsra_icon( 'map-pin' ); ?> Royal Canadian Legion, 471 Simcoe St South, Oshawa, ON L1H 4J7</h3>
 					</div>
 					<a href="https://maps.google.com/?q=Royal+Canadian+Legion+471+Simcoe+St+S+Oshawa+ON+L1H+4J7" target="_blank" rel="noopener" class="btn btn-secondary">
 						Open in Google Maps &rarr;

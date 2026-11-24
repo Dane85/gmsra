@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container" style="text-align: center;">
 		<div class="hero-content" style="max-width: 800px; margin: 0 auto;">
 			<div class="hero-pill" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; margin: 0 auto 1.25rem;">
-				<span>ℹ️</span> Page Notice
+				<?php echo gmsra_icon( 'info' ); ?> Page Notice
 			</div>
 			<h1 class="hero-title" style="font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 0.75rem; color: #ffffff;">
 				Page Not Found
@@ -43,7 +43,7 @@ get_header(); ?>
 
 			<div style="background: #f0f7ff; border: 1px solid #c7e1f9; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2.25rem; text-align: left;">
 				<h3 style="font-size: 1.05rem; color: #004b87; margin-bottom: 0.5rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-					<span>✓</span> Everything is Online and Accessible
+					<?php echo gmsra_icon( 'check' ); ?> Everything is Online and Accessible
 				</h3>
 				<p style="font-size: 0.95rem; color: #334155; margin: 0; line-height: 1.6;">
 					All member services, meeting schedules at the Royal Canadian Legion Branch 43, golf tournament photos, and the downloadable PDF membership form are fully operational below.

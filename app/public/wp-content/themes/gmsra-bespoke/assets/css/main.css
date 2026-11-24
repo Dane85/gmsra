@@ -329,14 +329,16 @@ img {
   border-color: var(--gmsra-navy);
   transform: translateY(-2px);
 }
+/* Accent button: darker gold so white text passes WCAG AA (4.8:1 at rest, 6.4:1 on hover; was 3.4:1).
+   --gmsra-gold itself is unchanged because the footer uses it for links on navy. */
 .btn-accent {
-  background-color: var(--gmsra-gold);
+  background-color: #A3640A;
   color: #FFFFFF !important;
-  border-color: var(--gmsra-gold);
+  border-color: #A3640A;
 }
 .btn-accent:hover {
-  background-color: #A3640A;
-  border-color: #A3640A;
+  background-color: #8A5208;
+  border-color: #8A5208;
   transform: translateY(-2px);
 }
 .btn-outline-white {
@@ -441,6 +443,7 @@ img {
   color: var(--gmsra-blue);
   flex-shrink: 0;
 }
+.meeting-banner-text h2,
 .meeting-banner-text h3 {
   font-size: 1.2rem;
   margin-bottom: 0.25rem;
@@ -503,10 +506,28 @@ img {
   box-shadow: var(--gmsra-shadow-md);
   border-color: #CBD5E1;
 }
+/* Card icon: SVG line icon (gmsra_icon) in a soft blue tile, matching .meeting-icon-box */
 .card-icon {
-  font-size: 2.2rem;
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  background: var(--gmsra-blue-light);
+  color: var(--gmsra-blue);
+  border-radius: var(--gmsra-radius);
+  font-size: 1.75rem;
   margin-bottom: 1.25rem;
+}
+
+/* Inline SVG icons from gmsra_icon(): sized by font-size, coloured by currentColor */
+.gmsra-icon {
   display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
 }
 .card-title {
   font-size: 1.3rem;
@@ -643,6 +664,7 @@ img {
   border-radius: var(--gmsra-radius);
   border-left: 4px solid var(--gmsra-blue);
 }
+.pillar-item h3,
 .pillar-item h4 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
@@ -688,7 +710,7 @@ img {
   transform: scale(1.05);
 }
 .gallery-item::after {
-  content: "🔍 Enlarge";
+  content: "Enlarge";
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -1064,7 +1086,7 @@ textarea.form-control {
   padding: 1.25rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.88rem;
-  color: #64748B;
+  color: #94A3B8; /* 7.6:1 on the footer base (was #64748B, 4.1:1) */
 }
 .footer-bottom-inner {
   display: flex;

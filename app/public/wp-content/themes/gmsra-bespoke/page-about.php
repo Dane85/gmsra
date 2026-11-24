@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>📖</span> Established 1982
+				<?php echo gmsra_icon( 'book' ); ?> Established 1982
 			</div>
 			<h1 class="hero-title">About GMSRA</h1>
 			<p class="hero-subtitle">Connecting GM of Canada Salaried Retirees for Over 40 Years</p>
@@ -49,22 +49,22 @@ get_header(); ?>
 
 			<div class="cards-grid">
 				<div class="card">
-					<div class="card-icon">🤝</div>
+					<div class="card-icon"><?php echo gmsra_icon( 'users' ); ?></div>
 					<h3 class="card-title">Community</h3>
 					<p class="card-desc">Bringing people together through shared automotive history, workplace pride, and common life experiences.</p>
 				</div>
 				<div class="card">
-					<div class="card-icon">🔗</div>
+					<div class="card-icon"><?php echo gmsra_icon( 'link' ); ?></div>
 					<h3 class="card-title">Connection</h3>
 					<p class="card-desc">Maintaining bonds and friendships that continue long after retirement, ensuring no retiree feels disconnected.</p>
 				</div>
 				<div class="card">
-					<div class="card-icon">🎈</div>
+					<div class="card-icon"><?php echo gmsra_icon( 'sparkles' ); ?></div>
 					<h3 class="card-title">Engagement</h3>
 					<p class="card-desc">Hosting fun, informative, and inclusive events throughout the year—from monthly speaker series to social gatherings and seasonal celebrations.</p>
 				</div>
 				<div class="card">
-					<div class="card-icon">❤️</div>
+					<div class="card-icon"><?php echo gmsra_icon( 'heart' ); ?></div>
 					<h3 class="card-title">Support</h3>
 					<p class="card-desc">Providing a compassionate place where members find fellowship, encouragement, and understanding during retirement.</p>
 				</div>
@@ -101,7 +101,7 @@ get_header(); ?>
 		<!-- Featured Golf Tournament Event Recap Banner -->
 		<div class="event-recap-banner">
 			<div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
-				<div style="font-size: 2.2rem; line-height: 1;">⛳</div>
+				<div style="font-size: 2.2rem; line-height: 1; color: var(--gmsra-blue);"><?php echo gmsra_icon( 'flag' ); ?></div>
 				<div style="flex: 1; min-width: 260px;">
 					<span class="top-notice-badge" style="background: var(--gmsra-blue); margin-bottom: 0.5rem; display: inline-block;">Annual Tournament Highlights</span>
 					<h3 style="font-size: 1.4rem; margin-bottom: 0.75rem; color: var(--gmsra-navy);">Annual Vic Pratt Memorial Golf Tournament</h3>
@@ -132,9 +132,9 @@ get_header(); ?>
 				'golf-2026-14.jpg',
 				'golf-2026-15.jpg',
 			);
-			foreach ( $golf_images as $g_img ) :
+			foreach ( $golf_images as $g_i => $g_img ) :
 			?>
-				<div class="gallery-item" tabindex="0" role="button" aria-label="View photo" data-full="<?php echo esc_url( gmsra_asset( 'images/golf-2026/' . $g_img ) ); ?>">
+				<div class="gallery-item" tabindex="0" role="button" aria-label="<?php echo esc_attr( sprintf( 'Enlarge golf tournament photo %d of %d', $g_i + 1, count( $golf_images ) ) ); ?>" data-full="<?php echo esc_url( gmsra_asset( 'images/golf-2026/' . $g_img ) ); ?>">
 					<img src="<?php echo esc_url( gmsra_asset( 'images/golf-2026/thumbs/' . $g_img ) ); ?>" alt="Vic Pratt Memorial Golf Tournament" loading="lazy" width="600" height="450">
 				</div>
 			<?php endforeach; ?>
@@ -143,7 +143,7 @@ get_header(); ?>
 		<!-- Featured BBQ Event Recap Banner -->
 		<div class="event-recap-banner">
 			<div style="display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;">
-				<div style="font-size: 2.2rem; line-height: 1;">🍔</div>
+				<div style="font-size: 2.2rem; line-height: 1; color: var(--gmsra-blue);"><?php echo gmsra_icon( 'utensils' ); ?></div>
 				<div style="flex: 1; min-width: 260px;">
 					<span class="top-notice-badge" style="background: var(--gmsra-blue); margin-bottom: 0.5rem; display: inline-block;">Annual Gathering Recap</span>
 					<h3 style="font-size: 1.4rem; margin-bottom: 0.75rem; color: var(--gmsra-navy);">Annual GMSRA Summer Picnic &amp; BBQ</h3>
@@ -182,9 +182,9 @@ get_header(); ?>
 				'DSC_0028.JPG',
 				'DSC_0029.JPG',
 			);
-			foreach ( $gallery_images as $img ) :
+			foreach ( $gallery_images as $img_i => $img ) :
 			?>
-				<div class="gallery-item" tabindex="0" role="button" aria-label="View photo" data-full="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/' . $img ) ); ?>">
+				<div class="gallery-item" tabindex="0" role="button" aria-label="<?php echo esc_attr( sprintf( 'Enlarge summer BBQ photo %d of %d', $img_i + 1, count( $gallery_images ) ) ); ?>" data-full="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/' . $img ) ); ?>">
 					<img src="<?php echo esc_url( gmsra_asset( 'images/bbq-2026/thumbs/' . $img ) ); ?>" alt="GMSRA Summer BBQ Photo" loading="lazy" width="600" height="400">
 				</div>
 			<?php endforeach; ?>
@@ -202,7 +202,7 @@ get_header(); ?>
 		</div>
 
 		<div class="content-card-box association-contact-box">
-			<div style="font-size: 2.5rem; margin-bottom: 1rem;">📬</div>
+			<div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--gmsra-blue);"><?php echo gmsra_icon( 'mail' ); ?></div>
 			<h3 style="margin-bottom: 0.75rem;">Official Association Email</h3>
 			<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">For general inquiries, membership applications, or member notices, please reach out to our official inbox:</p>
 			<div style="margin-bottom: 2rem;">

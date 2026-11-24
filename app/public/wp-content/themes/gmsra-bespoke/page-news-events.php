@@ -12,7 +12,7 @@ get_header(); ?>
 	<div class="container">
 		<div class="hero-content">
 			<div class="hero-pill">
-				<span>📅</span> Stay Connected
+				<?php echo gmsra_icon( 'calendar' ); ?> Stay Connected
 			</div>
 			<h1 class="hero-title">News &amp; Upcoming Events</h1>
 			<p class="hero-subtitle">Mark Your Calendar for Our Upcoming Meetings and Social Gatherings</p>
@@ -55,9 +55,9 @@ get_header(); ?>
 						</div>
 
 						<p style="color: var(--gmsra-text-muted); font-size: 0.95rem; margin-bottom: 0.75rem;">
-							<strong>📅 <?php echo $is_all_day ? 'Date:' : 'Date &amp; Time:'; ?></strong> <?php echo esc_html( $date_time_str ); ?>
+							<strong><?php echo gmsra_icon( 'calendar' ); ?> <?php echo $is_all_day ? 'Date:' : 'Date &amp; Time:'; ?></strong> <?php echo esc_html( $date_time_str ); ?>
 							<?php if ( ! empty( $evt['location'] ) ) : ?>
-								<br><strong>📍 Location:</strong> <?php echo esc_html( $evt['location'] ); ?>
+								<br><strong><?php echo gmsra_icon( 'map-pin' ); ?> Location:</strong> <?php echo esc_html( $evt['location'] ); ?>
 							<?php endif; ?>
 						</p>
 
@@ -77,7 +77,7 @@ get_header(); ?>
 			</div>
 		<?php else : ?>
 			<div style="text-align: center; padding: 3rem 1.5rem; background: var(--gmsra-surface); border-radius: var(--gmsra-radius-lg); border: 1px solid var(--gmsra-border); margin-bottom: 2rem;">
-				<div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📅</div>
+				<div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: var(--gmsra-blue);"><?php echo gmsra_icon( 'calendar' ); ?></div>
 				<h3 style="font-size: 1.35rem; color: var(--gmsra-navy); margin-bottom: 0.5rem;">No Upcoming Events Currently Scheduled</h3>
 				<p style="color: var(--gmsra-text-muted); max-width: 540px; margin: 0 auto;">Please check back soon as new meetings, outings, and association gatherings are published to the calendar.</p>
 			</div>
@@ -87,7 +87,7 @@ get_header(); ?>
 		<!-- In Memoriam / Notices Box -->
 		<div class="content-card-box memoriam-box">
 			<div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-				<div style="font-size: 2.8rem;">🕊️</div>
+				<div style="font-size: 2.8rem; color: var(--gmsra-blue);"><?php echo gmsra_icon( 'feather' ); ?></div>
 				<div style="flex: 1; min-width: 280px;">
 					<h3 style="margin-bottom: 0.35rem;">Obituaries &amp; Member Notices</h3>
 					<p style="color: var(--gmsra-text-muted); margin: 0;">We pay tribute to members and colleagues who have passed away. If you wish to notify the association of a member's passing or share an obituary, please contact the association directly at <strong>GMSRA@gmsalariedretirees.com</strong>.</p>
