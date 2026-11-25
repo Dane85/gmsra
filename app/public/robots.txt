@@ -3,4 +3,4 @@ Allow: /
 Disallow: /wp-admin/
 Allow: /wp-admin/admin-ajax.php
 
-Sitemap: https://gmsalariedretirees.com/sitemap.xml
+Sitemap: https://gmsalariedretirees.com/wp-sitemap.xml

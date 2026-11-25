@@ -170,7 +170,7 @@ get_header(); ?>
 					<div>
 						<h4 style="font-size: 1rem; color: var(--gmsra-blue); margin-bottom: 0.25rem;">3. In Person</h4>
 						<p style="font-size: 0.92rem; color: var(--gmsra-text-muted);">
-							Bring cash or cheque to our next monthly gathering on the 2nd Tuesday of an active meeting month (Sept–Dec &amp; March–May) at the Royal Canadian Legion (471 Simcoe St South, Oshawa, ON L1H 4J7).
+							Bring cash or cheque to our next regular gathering on the 2nd Tuesday of an active meeting month (Sept–Dec &amp; March–May) at the Royal Canadian Legion (471 Simcoe St South, Oshawa, ON L1H 4J7).
 						</p>
 					</div>
 				</div>

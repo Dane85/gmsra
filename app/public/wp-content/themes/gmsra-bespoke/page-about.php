@@ -29,7 +29,7 @@ get_header(); ?>
 				<span class="section-tag">Our Purpose</span>
 				<h2>Our Mission</h2>
 				<p>We provide a warm, welcoming space where retirees can connect, engage in meaningful activities, and continue the camaraderie built over years of service at GM.</p>
-				<p>From social events and educational guest speakers to seasonal celebrations and monthly gatherings, GMSRA is a hub where retirees can share experiences, make new memories, and maintain lasting friendships.</p>
+				<p>From social events and educational guest speakers to seasonal celebrations and regular gatherings, GMSRA is a hub where retirees can share experiences, make new memories, and maintain lasting friendships.</p>
 				<div style="margin-top: 1.5rem;">
 					<a href="<?php echo esc_url( home_url( '/membership-form/' ) ); ?>" class="btn btn-primary">Join the Association &rarr;</a>
 				</div>

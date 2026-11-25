@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GMSRA_VERSION', '1.4.0' );
+define( 'GMSRA_VERSION', '1.4.1' );
 
 /**
  * Theme Setup
@@ -1361,6 +1361,76 @@ remove_action( 'admin_print_styles', 'print_emoji_styles' );
 remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
 remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
 remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+
+/* ==========================================================================
+   SEO: meta descriptions, home title, sitemap and author archive (v1.4.1, 2026-11-25)
+   ========================================================================== */
+
+/**
+ * Meta description text for the current view. Pages use fixed copy, posts use their excerpt.
+ *
+ * @return string Plain text (not yet escaped), or '' when there is none.
+ */
+function gmsra_meta_description() {
+	$pages = array(
+		'about'           => 'Since 1982, GMSRA has connected GM of Canada salaried retirees and their spouses in Oshawa. Learn who we are and what the association does.',
+		'membership-form' => 'Join or renew your GMSRA membership online, or bring your form and dues to one of our regular gatherings at the Royal Canadian Legion in Oshawa.',
+		'news-events'     => 'Upcoming GMSRA gatherings, the Vic Pratt Memorial Golf Tournament, the summer BBQ and other news for GM salaried retirees in Oshawa.',
+		'contact-us'      => 'Questions about GMSRA? Get in touch, or join us at one of our regular gatherings on the 2nd Tuesday at 1:00 PM at the Royal Canadian Legion, Oshawa.',
+	);
+
+	if ( is_front_page() ) {
+		return 'The General Motors Salaried Retirees Association brings GM of Canada salaried retirees and their spouses together in Oshawa. Meetings, events and membership.';
+	}
+
+	if ( is_page() ) {
+		$slug = get_post_field( 'post_name', get_queried_object_id() );
+		return isset( $pages[ $slug ] ) ? $pages[ $slug ] : '';
+	}
+
+	if ( is_singular( 'post' ) ) {
+		$text = get_the_excerpt( get_queried_object_id() );
+		$text = trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES, 'UTF-8' ) ) );
+		if ( mb_strlen( $text ) > 160 ) {
+			$text = rtrim( mb_substr( $text, 0, 157 ) ) . '...';
+		}
+		return $text;
+	}
+
+	return '';
+}
+
+function gmsra_print_meta_description() {
+	$description = gmsra_meta_description();
+	if ( '' !== $description ) {
+		echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+	}
+}
+add_action( 'wp_head', 'gmsra_print_meta_description', 1 );
+
+// The default home title ("site name – tagline") is 85 characters and gets cut off in search results.
+function gmsra_front_page_title( $title ) {
+	if ( is_front_page() ) {
+		return 'GM Salaried Retirees Association | Oshawa, since 1982';
+	}
+	return $title;
+}
+add_filter( 'pre_get_document_title', 'gmsra_front_page_title' );
+
+// Keep the WordPress sitemap to pages and posts: no user (login name) or category sitemaps.
+function gmsra_sitemap_providers( $provider, $name ) {
+	return in_array( $name, array( 'users', 'taxonomies' ), true ) ? false : $provider;
+}
+add_filter( 'wp_sitemaps_add_provider', 'gmsra_sitemap_providers', 10, 2 );
+
+// The site has one author, so author archives (which expose the login name) send visitors home.
+function gmsra_redirect_author_archives() {
+	if ( is_author() ) {
+		wp_safe_redirect( home_url( '/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'gmsra_redirect_author_archives', 1 ); // Before redirect_canonical turns ?author=1 into /author/<login>/.
 
 
 

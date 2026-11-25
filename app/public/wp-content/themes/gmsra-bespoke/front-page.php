@@ -171,7 +171,7 @@ if ( $next_event && ( $next_event['start'] instanceof DateTime ) ) :
 			<div class="join-card">
 				<div class="join-step-number">3</div>
 				<h3>Join In Person</h3>
-				<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">Bring your completed form and dues to our next monthly gathering on the 2nd Tuesday of an active meeting month (Sept–Dec &amp; March–May) at the <strong>Royal Canadian Legion</strong> (471 Simcoe St South, Oshawa, ON L1H 4J7).</p>
+				<p style="color: var(--gmsra-text-muted); margin-bottom: 1.5rem;">Bring your completed form and dues to our next regular gathering on the 2nd Tuesday of an active meeting month (Sept–Dec &amp; March–May) at the <strong>Royal Canadian Legion</strong> (471 Simcoe St South, Oshawa, ON L1H 4J7).</p>
 				<a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>" class="btn btn-secondary" style="margin-top: auto;">Meeting Directions &rarr;</a>
 			</div>
 		</div>
